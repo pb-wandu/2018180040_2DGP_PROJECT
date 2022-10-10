@@ -36,14 +36,16 @@ keypressedspace = 0 # 스페이스바 입력여부
 keypressedz = 0 # z키 입력여부
 keypresseda = 0 # a키 입력여부
 
-mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
+# 마우스 클릭한 x좌표, y좌표
+mouseclickedx, mouseclickedy = UNSET, UNSET
 
-STOP, LEFT, RIGHT = 0, 1, 2 # x방향 이동방향 (멈춤, 왼쪽, 오른쪽)
+# 플레이어 동작들 (멈춤, 왼쪽, 오른쪽, 왼쪽 그리기, 오른쪽 그리기)
+STOP, LEFT, RIGHT, LEFTDRAWING, RIGHTDRAWING = 0, 1, 2, -3, 3
 
 nowplace = 'mainmenu' # 현재 있는 위치
 nowstageplaying = False # 현재 스테이지 진행중 여부
 
-nowplayerframe = 0 # 플레이어 애니메이션 프레임
+nowdrawing = 0 # 현재 그림 그리고 있는지 여부
 
 # ------------- 오브젝트 객체들 -------------
 
@@ -68,7 +70,7 @@ class Player:
         self.x, self.y = PLAYERXSTART, PLAYERYSTART # 플레이어 좌표
         self.yspd = 0 # y축 이동속도
         self.frame = 0 # 애니메이션 프레임
-        self.dirx = STOP  # 현재 x방향 이동방향
+        self.nowstate = STOP  # 현재 플레이어 상태
 
         # [별그림자 회랑]에서 강화할 수 있는 것
         self.LPamount = 100 # 체력
@@ -82,10 +84,6 @@ class Player:
         self.x += x
         self.y += y
 
-    # 프레임 지정
-    def setframe(self, f):
-        self.frame = f
-
     # 정보 갱신
     def update(self):
         self.frame = (self.frame + 1) % 8
@@ -93,7 +91,7 @@ class Player:
     # 그리기
     def draw(self):
         # 플레이어 그리기 (3픽셀은 임시 보정)
-        self.image.clip_draw(self.frame * 40, self.dirx * 50, 33, 43, self.x, self.y + 20)
+        self.image.clip_draw(self.frame * 40, abs(self.nowstate) * 50, 33, 43, self.x, self.y + 20)
 
     pass
 
@@ -105,6 +103,18 @@ class Jumpeffect:
 
     def draw(self, x, y):
         self.image.draw(x, y) # 날기(점프) 효과 이미지 그리기
+
+    pass
+
+# 별 그리기 효과 오브젝트
+class Draweffect:
+
+    def __init__(self):
+        self.image = load_image('starlight.png') # 날기(점프) 효과 이미지 (임시)
+        self.frame = 0
+
+    def draw(self, x, y):
+        self.image.clip_draw(self.frame * 30, 0, 20, 20, x, y)
 
     pass
 
@@ -136,8 +146,12 @@ ground = Ground() # 발판 오브젝트
 ground.__init__()
 player = Player() # 플레이어 오브젝트
 player.__init__()
+
 jumpeffect = Jumpeffect() # 점프 효과 오브젝트
 jumpeffect.__init__()
+draweffect = Draweffect() # 그리기 효과 오브젝트
+draweffect.__init__()
+
 startmenu = Startmenu() # 시작 메뉴 오브젝트
 startmenu.__init__()
 gamemenu = Gamemenu() # 게임 메뉴 오브젝트
@@ -180,10 +194,12 @@ def handle_events():
                 keypressedright = 1 # 오른쪽 키 눌림
 
             # z키 눌렀을 때
-            # elif event.key == SDLK_z: # z키 눌림
+            elif event.key == SDLK_z: # z키 눌림
+                keypressedz = 1
 
             # a키 눌렀을 때
             # elif event.key == SDLK_q: # a키 눌림
+            #    keypressedq = 1
 
             # esc키 눌렸을 때
             elif event.key == SDLK_ESCAPE:
@@ -202,8 +218,8 @@ def handle_events():
             if event.key == SDLK_SPACE:
                 keypressedspace = 0
 
-            # elif event.key == SDLK_z:
-                # keypressedz = 0
+            elif event.key == SDLK_z:
+                keypressedz = 0
 
             # elif event.key == SDLK_a:
                 # keypresseda = 0
@@ -255,49 +271,84 @@ while gamerunning: # 실행중일 경우
 
         player.draw() # 플레이어 그리기
 
-        if player.dirx == STOP:
-            nowplayerframe = (nowplayerframe + 1) % 2  # 프레임 표시
+        # 플레이어 애니메이션
+        if player.nowstate == STOP: # 멈춰 있을 경우
+            player.frame = 0  # 프레임 표시
+        elif player.nowstate == LEFTDRAWING:  # 왼쪽 그리기중
+            player.frame = 0  # 프레임 표시
+        elif player.nowstate == RIGHTDRAWING: # 오른쪽 그리기중
+            player.frame = 1  # 프레임 표시
         else:
-            nowplayerframe = (nowplayerframe + 1) % 2  # 프레임 표시
-        player.setframe(nowplayerframe) # 플레이어에게 현재 프레임 전달
+            player.frame = (player.frame + 1) % 2  # 프레임 표시
         delay(0.045)  # 프레임간 지연
 
         # 점프중일 경우 점프 이펙트 그리기
         if player.yspd > 0:
             jumpeffect.draw(player.x, player.y - 5)
 
-        update_canvas()
+        # '그림 그리고 있지 않을시에만' 이동
+        if nowdrawing == 0:
 
-        # 현재 눌린 방향에 따라 이동 및 방향 지정
+            # 현재 눌린 방향에 따라 동작 지정
 
-        if keypressedleft == 1:
-            player.dirx = LEFT  # 캐릭터 방향
-            player.movexy(-10, 0) # 플레이어 이동
-        elif keypressedright == 1:
-            player.dirx = RIGHT  # 캐릭터 방향
-            player.movexy(+10, 0) # 플레이어 이동
-        else:
-            frame = 0
+            if keypressedleft == 1:
+                if keypressedz == 0:
+                    player.nowstate = LEFT  # 캐릭터 방향
+                    player.movexy(-10, 0)  # 플레이어 이동
 
-        if keypressedspace == 1:
-            # 위로 날기
-            player.yspd = player.yjumpamount
-            player.y += 0.2
-            keypressedspace = 0
+                elif keypressedz == 1:  # z키 눌렀을 경우
+                    player.nowstate = LEFTDRAWING
+                    player.frame = 0  # 프레임 지정
+                    nowdrawing = 1  # 현재 그리고 있음
 
-        # y 이동속도 하한 제한
-        if player.yspd < -16:
-            player.yspd = -16
+            elif keypressedright == 1:
+                if keypressedz == 0:
+                    player.nowstate = RIGHT  # 캐릭터 방향
+                    player.movexy(+10, 0)  # 플레이어 이동
 
+                elif keypressedz == 1:  # z키 눌렀을 경우
+                    player.nowstate = RIGHTDRAWING
+                    player.frame = 1 # 프레임 지정
+                    nowdrawing = 1  # 현재 그리고 있음
 
-        # 플레이어는 yspd만큼 y축 방향으로 이동한다
+            else:
+                player.frame = 0
 
-        player.yspd -= 0.9
-        player.y += player.yspd
+            # 스페이스바 눌렀을 경우 날기(점프)
+            if keypressedspace == 1:
+                # 위로 날기
+                player.yspd = player.yjumpamount
+                player.y += 0.2
+                keypressedspace = 0
 
-        if player.y < 150:
-            player.y = 150
+            # y 이동속도 하한 제한
+            if player.yspd < -16:
+                player.yspd = -16
+
+            # 플레이어는 yspd만큼 y축 방향으로 이동한다
+            player.yspd -= 0.9
+            player.y += player.yspd
+
+            if player.y < 150:
+                player.y = 150
+                player.yspd = 0
+
+        # 그림 그리고 있을 경우 약간 그림 그리는 지연시간 뒤 풀림
+        elif nowdrawing == 1:
+
+            # 별 그리기 효과 표시
+
+            draweffect.frame = (draweffect.frame + 1) % 5
+
+            draweffect.frame = 0
+            if player.nowstate == LEFTDRAWING:
+                draweffect.draw(player.x - 15, player.y + 20)
+            elif player.nowstate == RIGHTDRAWING:
+                draweffect.draw(player.x + 15, player.y + 20)
+
+            delay(0.1)  # 프레임간 지연
             player.yspd = 0
+            nowdrawing = 0
 
         # 범위 내에 플레이어가 있게 하기 # 어째서인지 10px만큼 보정해줘야 한다
 
@@ -310,12 +361,11 @@ while gamerunning: # 실행중일 경우
             player.y = (WINDOWYSIZE - PLAYERYSIZE - 10)
             player.yspd = -1
 
-        # 키보드를 누르고 있지 않을 경우 정지동작으로 표시
-        if keypressing == 0:
+        # 키보드를 누르고 있지 않으며 그림 그리고 있지 않을 경우 정지동작으로 표시
+        if keypressing == 0 and nowdrawing == 0:
+            player.nowstate = STOP
 
-            if player.dirx == LEFT:
-                player.dirx = STOP
-            elif player.dirx == RIGHT:
-                player.dirx = STOP
+        # 캔버스 다시 그리기
+        update_canvas()
 
 close_canvas()
