@@ -20,6 +20,7 @@ eunbi = None # 별그림자 은비(플레이어)
 ground = None # 발판
 jumpeffect = None # 점프 효과
 draweffect = None # 그리기 효과
+drawstage = None # 스테이지 표시
 
 keypressing = 0  # 키보드 입력중 여부
 mousepressed = 0 # 마우스 클릭한 여부
@@ -34,6 +35,8 @@ keypressedz = 0 # z키 입력여부
 keypresseda = 0 # a키 입력여부
 
 mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
+
+nowgamestage = 11 # 현재 스테이지
 
 # ------------ 플레이어 동작 관련 ------------
 
@@ -56,6 +59,7 @@ class Player:
         self.image = load_image('characterimages.png')  # 캐릭터 이미지 (작업중)
 
         self.x, self.y = PLAYERXSTART, PLAYERYSTART  # 플레이어 좌표
+        self.xspd = 8 # x축 이동속도
         self.yspd = 0  # y축 이동속도
         self.frame = 0  # 애니메이션 프레임
         self.nowstate = STOP  # 현재 플레이어 상태
@@ -107,7 +111,6 @@ class Jumpeffect:
 
     pass
 
-
 # 별 그리기 효과 오브젝트
 class Draweffect:
 
@@ -116,8 +119,21 @@ class Draweffect:
         self.frame = 0
 
     def draw(self, x, y):
-        self.image.clip_draw(self.frame * 30, 0, 20, 20, x, y)
+        self.image.clip_draw(self.frame * 20, 0, 10, 10, x, y)
 
+    pass
+
+# 스테이지 표시 오브젝트
+
+class Drawstage:
+
+    def __init__(self):
+        self.imageworld = load_image('level_world.png')  # 날기(점프) 효과 이미지 (임시)
+        self.imagestage = load_image('level_stage.png')  # 날기(점프) 효과 이미지 (임시)
+
+    def draw(self, n):
+        self.imageworld.clip_draw( (int(n / 10) - 1) * 56, 0, 48, 48, 737, 434)
+        self.imagestage.clip_draw(0, (int(n % 10) - 1) * 56, 198, 48, 869.5, 434)
     pass
 
 # ------------ 메뉴 함수들 ------------
@@ -129,6 +145,7 @@ def enter():
     global ground
     global jumpeffect
     global draweffect
+    global drawstage
 
     imagebg = load_image('gamemenuimg.png')  # 배경 이미지
 
@@ -142,6 +159,8 @@ def enter():
     jumpeffect.__init__()
     draweffect = Draweffect()  # 그리기 효과 오브젝트
     draweffect.__init__()
+    drawstage = Drawstage()  # 스테이지 표시 오브젝트
+    drawstage.__init__()
 
     pass
 
@@ -153,12 +172,14 @@ def exit():
     global ground
     global jumpeffect
     global draweffect
+    global drawstage
 
     del imagebg
     del eunbi
     del ground
     del jumpeffect
     del draweffect
+    del drawstage
     pass
 
 # 화면 그리기
@@ -168,6 +189,8 @@ def draw():
     imagebg.draw(WINDOWXSIZE / 2, WINDOWYSIZE / 2)  # 배경 이미지 그리기
     ground.draw(340, 140)  # 땅 그리기
     eunbi.draw()  # 은비 (플레이어) 그리기
+
+    drawstage.draw(nowgamestage)  # 스테이지 그리기
 
     # 점프중일 경우 점프 이펙트 그리기
     if eunbi.yspd > 0:
@@ -179,9 +202,9 @@ def draw():
         draweffect.frame = 0
 
         if eunbi.nowstate == LEFTDRAWING:
-            draweffect.draw(eunbi.x - 15, eunbi.y + 20)
+            draweffect.draw(eunbi.x - 15, eunbi.y + 17)
         elif eunbi.nowstate == RIGHTDRAWING:
-            draweffect.draw(eunbi.x + 15, eunbi.y + 20)
+            draweffect.draw(eunbi.x + 15, eunbi.y + 17)
 
     update_canvas()
 
@@ -214,7 +237,7 @@ def update():
         if keypressedleft == 1:
             if keypressedz == 0:
                 eunbi.nowstate = LEFT  # 캐릭터 방향
-                eunbi.movexy(-10, 0)  # 플레이어 이동
+                eunbi.movexy(-eunbi.xspd, 0)  # 플레이어 이동
 
             elif keypressedz == 1:  # z키 눌렀을 경우
                 eunbi.nowstate = LEFTDRAWING
@@ -224,7 +247,7 @@ def update():
         elif keypressedright == 1:
             if keypressedz == 0:
                 eunbi.nowstate = RIGHT  # 캐릭터 방향
-                eunbi.movexy(+10, 0)  # 플레이어 이동
+                eunbi.movexy(+eunbi.xspd, 0)  # 플레이어 이동
 
             elif keypressedz == 1:  # z키 눌렀을 경우
                 eunbi.nowstate = RIGHTDRAWING

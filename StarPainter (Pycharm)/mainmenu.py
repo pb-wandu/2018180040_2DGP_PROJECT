@@ -6,6 +6,8 @@ from pico2d import *    # pico2d 라이브러리 import
 import game_framework   # 게임 프레임워크 임포트
 import gamemenu         # 게임 메뉴 전환시 호출
 
+#from StarPainter import * # 게임 프레임워크 Main 파일 임포트
+
 # ------------ 상수들 ------------
 
 WINDOWXSIZE = 1000  # 화면 x 크기
