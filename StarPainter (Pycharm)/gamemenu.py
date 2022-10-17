@@ -23,6 +23,7 @@ draweffect = None # 그리기 효과
 drawstage = None # 스테이지 표시
 pauseimage = None # 일시정지 이미지
 wingimage = None # 날개 이미지
+skill1image, skill2image, skill3image = None, None, None # 기술
 
 gameplaying = 0 # 게임 플레이중
 
@@ -161,6 +162,56 @@ class Wingimage:
 
     pass
 
+# 동작 표시 오브젝트
+
+class Skill1image:
+
+    def __init__(self):
+        self.image = load_image('skill1show.png')  # 날개 이미지
+        self.frame = 0  # 애니메이션 프레임
+
+    def draw(self, x, y):
+        self.image.draw(x, y)  # 기술 이미지 그리기
+        # self.image.clip_draw(0, self.frame * ?, 55, 14, x, y - self.frame * 4)
+
+    # def update(self):
+    #    if self.frame < 2:
+    #        self.frame += 1
+
+    pass
+
+class Skill2image:
+
+    def __init__(self):
+        self.image = load_image('skill2show.png')  # 날개 이미지
+        self.frame = 0  # 애니메이션 프레임
+
+    def draw(self, x, y):
+        self.image.draw(x, y)  # 기술 이미지 그리기
+        # self.image.clip_draw(0, self.frame * ?, 55, 14, x, y - self.frame * 4)
+
+    # def update(self):
+    #    if self.frame < 2:
+    #        self.frame += 1
+
+    pass
+
+class Skill3image:
+
+    def __init__(self):
+        self.image = load_image('skill3show.png')  # 날개 이미지
+        self.frame = 0  # 애니메이션 프레임
+
+    def draw(self, x, y):
+        self.image.draw(x, y)  # 기술 이미지 그리기
+        # self.image.clip_draw(0, self.frame * ?, 55, 14, x, y - self.frame * 4)
+
+    # def update(self):
+    #    if self.frame < 2:
+    #        self.frame += 1
+
+    pass
+
 # ------------ 메뉴 함수들 ------------
 
 # 메뉴 진입
@@ -174,6 +225,8 @@ def enter():
     global gameplaying
     global pauseimage
     global wingimage
+
+    global skill1image, skill2image, skill3image
 
     gameplaying = 1 # 게임 플레이중
 
@@ -195,6 +248,13 @@ def enter():
     wingimage = Wingimage()  # 날개 오브젝트
     wingimage.__init__()
 
+    skill1image = Skill1image() # 기술 표시
+    skill1image.__init__()
+    skill2image = Skill2image()  # 기술 표시
+    skill2image.__init__()
+    skill3image = Skill3image()  # 기술 표시
+    skill3image.__init__()
+
     pass
 
 
@@ -205,12 +265,14 @@ def exit():
     global ground
     global jumpeffect, draweffect
     global drawstage
+    global skill1image, skill2image, skill3image
 
     del imagebg
     del eunbi, wingimage
     del ground
     del jumpeffect, draweffect
     del drawstage
+    del skill1image, skill2image, skill3image
 
     pass
 
@@ -223,6 +285,10 @@ def draw():
     eunbi.draw()  # 은비 (플레이어) 그리기
 
     drawstage.draw(nowgamestage)  # 스테이지 그리기
+
+    skill1image.draw(452, 60) # 기술 1 그리기
+    skill2image.draw(548, 60)  # 기술 2 그리기
+    skill3image.draw(644, 60)  # 기술 3 그리기
 
     # 점프중일 경우 점프 이펙트와 날개 이미지 그리기
     if eunbi.yspd > 0:
