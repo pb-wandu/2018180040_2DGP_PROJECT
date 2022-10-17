@@ -2,9 +2,13 @@
 
 # ------------ import 파일들 ------------
 
-from pico2d import *    # pico2d 라이브러리 import
-import game_framework   # 게임 프레임워크 임포트
-import mainmenu         # 메인 메뉴 전환시 호출
+from pico2d import *      # pico2d 라이브러리 import
+import game_framework     # 게임 프레임워크 임포트
+import gameobjects        # 게임 오브젝트 임포트
+
+import frame_main         # 메인 메뉴 전환시 호출
+import frame_upgrade      # 별그림자 회랑 (강화) 메뉴 전환시 호출
+import frame_pause        # 대기 전환시 호출
 
 # ------------ 상수들 ------------
 
@@ -23,7 +27,9 @@ draweffect = None # 그리기 효과
 drawstage = None # 스테이지 표시
 pauseimage = None # 일시정지 이미지
 wingimage = None # 날개 이미지
-skill1image, skill2image, skill3image = None, None, None # 기술
+
+skill1image, skill2image, skill3image = None, None, None # 기술 사용 가능여부 이미지
+quickmove = None # 도약 효과 이미지
 
 gameplaying = 0 # 게임 플레이중
 
@@ -43,6 +49,8 @@ mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌�
 
 nowgamestage = 11 # 현재 스테이지
 
+playersavex, playersavey = UNSET, UNSET # 플레이어 좌표 저장
+
 # ------------ 플레이어 동작 관련 ------------
 
 # 별그림자 은비 == 플레이어블 캐릭터 이름
@@ -54,165 +62,17 @@ STOP, LEFT, RIGHT, LEFTDRAWING, RIGHTDRAWING = 0, 1, 2, -3, 3
 
 nowdrawing = 0  # 현재 그림 그리고 있는지 여부
 
-# ------------- 오브젝트 객체들 -------------
+# 도약 판정 변수 (별그림자 회랑 강화 x)
+ifnowclickr = 0 # 지금 오른쪽 눌렀는가 변수
+ifnowclickl = 0 # 지금 왼쪽 눌렀는가 변수
+nowdashtime = 0 # 0이 되기 전에 같은 키를 다시 누르면 도약을 수행
+skillxcooltime = 0  # 도약 대기시간
+nowdashl, nowdashr = 0, 0  # 해당 방향으로 도약 여부
 
-# 플레이어 오브젝트
-class Player:
-
-    # 초기화
-    def __init__(self):
-        self.image = load_image('characterimages.png')  # 캐릭터 이미지 (작업중)
-
-        self.x, self.y = PLAYERXSTART, PLAYERYSTART  # 플레이어 좌표
-        self.xspd = 8 # x축 이동속도
-        self.yspd = 0  # y축 이동속도
-        self.frame = 0  # 애니메이션 프레임
-        self.nowstate = STOP  # 현재 플레이어 상태
-
-        # [별그림자 회랑]에서 강화할 수 있는 것
-        self.LPamount = 100  # 체력
-        self.EPamount = 100  # 기력
-        self.yjumpamount = 11  # 날기(점프)시 이동하는 정도
-        # self.cooltime_quickmove = UNSET # 도약 쿨타임
-        # self.cooltime_warp = UNSET # 순간이동 쿨타임
-
-    # x, y 각각 좌표만큼 이동
-    def movexy(self, x, y):
-        self.x += x
-        self.y += y
-
-    # 정보 갱신
-    def update(self):
-        self.frame = (self.frame + 1) % 2
-
-    # 그리기
-    def draw(self):
-        # 플레이어 그리기 (3픽셀은 임시 보정)
-        self.image.clip_draw(self.frame * 40, abs(self.nowstate) * 50, 33, 43, self.x, self.y + 20)
-
-    pass
-
-
-# 발판 오브젝트
-class Ground:
-
-    def __init__(self):
-        self.image = load_image('groundtmp.png')  # 발판 이미지 (임시)
-
-    def draw(self, x, y):
-        self.image.draw(x, y)  # 발판 이미지 그리기
-
-    pass
-
-
-# 점프 효과 오브젝트
-class Jumpeffect:
-
-    def __init__(self):
-        self.image = load_image('jumpeffect.png')  # 날기(점프) 효과 이미지 (임시)
-
-    def draw(self, x, y):
-        self.image.draw(x, y)  # 날기(점프) 효과 이미지 그리기
-
-    pass
-
-# 별 그리기 효과 오브젝트
-class Draweffect:
-
-    def __init__(self):
-        self.image = load_image('starlight.png')  # 날기(점프) 효과 이미지 (임시)
-        self.frame = 0
-
-    def draw(self, x, y):
-        self.image.clip_draw(self.frame * 20, 0, 10, 10, x, y - self.frame * 5)
-
-    def update(self):
-        if self.frame < 5:
-            self.frame += 1
-
-    pass
-
-# 스테이지 표시 오브젝트
-
-class Drawstage:
-
-    def __init__(self):
-        self.imageworld = load_image('level_world.png')  # 날기(점프) 효과 이미지 (임시)
-        self.imagestage = load_image('level_stage.png')  # 날기(점프) 효과 이미지 (임시)
-
-    def draw(self, n):
-        self.imageworld.clip_draw( (int(n / 10) - 1) * 56, 0, 48, 48, 737, 434)
-        self.imagestage.clip_draw(0, (int(n % 10) - 1) * 56, 198, 48, 869.5, 434)
-    pass
-
-# 날개 오브젝트
-
-class Wingimage:
-
-    def __init__(self):
-        self.image = load_image('wingimg.png')  # 날개 이미지
-        self.frame = 0  # 애니메이션 프레임
-
-    def draw(self, x, y):
-        self.image.clip_draw(0, self.frame * 24, 55, 14, x, y - self.frame * 4)  # 날기(점프) 효과 이미지 그리기
-
-    def update(self):
-        if self.frame < 2:
-            self.frame += 1
-
-    pass
-
-# 동작 표시 오브젝트
-
-class Skill1image:
-
-    def __init__(self):
-        self.image = load_image('skill1show.png')  # 날개 이미지
-        self.frame = 0  # 애니메이션 프레임
-
-    def draw(self, x, y):
-        self.image.draw(x, y)  # 기술 이미지 그리기
-        # self.image.clip_draw(0, self.frame * ?, 55, 14, x, y - self.frame * 4)
-
-    # def update(self):
-    #    if self.frame < 2:
-    #        self.frame += 1
-
-    pass
-
-class Skill2image:
-
-    def __init__(self):
-        self.image = load_image('skill2show.png')  # 날개 이미지
-        self.frame = 0  # 애니메이션 프레임
-
-    def draw(self, x, y):
-        self.image.draw(x, y)  # 기술 이미지 그리기
-        # self.image.clip_draw(0, self.frame * ?, 55, 14, x, y - self.frame * 4)
-
-    # def update(self):
-    #    if self.frame < 2:
-    #        self.frame += 1
-
-    pass
-
-class Skill3image:
-
-    def __init__(self):
-        self.image = load_image('skill3show.png')  # 날개 이미지
-        self.frame = 0  # 애니메이션 프레임
-
-    def draw(self, x, y):
-        self.image.draw(x, y)  # 기술 이미지 그리기
-        # self.image.clip_draw(0, self.frame * ?, 55, 14, x, y - self.frame * 4)
-
-    # def update(self):
-    #    if self.frame < 2:
-    #        self.frame += 1
-
-    pass
-
-# ------------ 메뉴 함수들 ------------
+# 도약 판정 변수 (별그림자 회랑 강화 o)
+dashtime = 100 # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
+nowskillxcooltime = 60 # 현재 도약 대기시간
+dashamount = 50 # 도약 크기
 
 # 메뉴 진입
 def enter():
@@ -228,32 +88,41 @@ def enter():
 
     global skill1image, skill2image, skill3image
 
+    global quickmove
+
     gameplaying = 1 # 게임 플레이중
 
     imagebg = load_image('gamemenuimg.png')  # 배경 이미지
-    pauseimage = load_image('pauseimg.png')  # 일시정지 이미지
 
     # 오브젝트 생성 및 초기화
 
-    eunbi = Player()  # 별그림자 은비 (플레이어 오브젝트)
+    eunbi = gameobjects.Player()  # 별그림자 은비 (플레이어 오브젝트)
     eunbi.__init__()
-    ground = Ground()  # 발판 오브젝트
+
+    # 중단시 저장해둔 좌표가 있다면 불러오기
+    if playersavex != UNSET:
+        eunbi.x, eunbi.y = playersavex, playersavey
+
+    ground = gameobjects.Ground()  # 발판 오브젝트
     ground.__init__()
-    jumpeffect = Jumpeffect()  # 점프 효과 오브젝트
+    jumpeffect = gameobjects.Jumpeffect()  # 점프 효과 오브젝트
     jumpeffect.__init__()
-    draweffect = Draweffect()  # 그리기 효과 오브젝트
+    draweffect = gameobjects.Draweffect()  # 그리기 효과 오브젝트
     draweffect.__init__()
-    drawstage = Drawstage()  # 스테이지 표시 오브젝트
+    drawstage = gameobjects.Drawstage()  # 스테이지 표시 오브젝트
     drawstage.__init__()
-    wingimage = Wingimage()  # 날개 오브젝트
+    wingimage = gameobjects.Wingimage()  # 날개 오브젝트
     wingimage.__init__()
 
-    skill1image = Skill1image() # 기술 표시
+    skill1image = gameobjects.Skill1image() # 동작 실행 가능여부 표시
     skill1image.__init__()
-    skill2image = Skill2image()  # 기술 표시
+    skill2image = gameobjects.Skill2image()  # 동작 실행 가능여부 표시
     skill2image.__init__()
-    skill3image = Skill3image()  # 기술 표시
+    skill3image = gameobjects.Skill3image()  # 동작 실행 가능여부 표시
     skill3image.__init__()
+
+    quickmove = gameobjects.Quickmove() # 동작 효과 표시
+    quickmove.__init__()
 
     pass
 
@@ -286,11 +155,19 @@ def draw():
 
     drawstage.draw(nowgamestage)  # 스테이지 그리기
 
-    skill1image.draw(452, 60) # 기술 1 그리기
-    skill2image.draw(548, 60)  # 기술 2 그리기
-    skill3image.draw(644, 60)  # 기술 3 그리기
+    skill1image.draw(472, 56)  # 기술 1 그리기
+    skill2image.draw(558, 56)  # 기술 2 그리기
+    skill3image.draw(644, 56)  # 기술 3 그리기
 
-    # 점프중일 경우 점프 이펙트와 날개 이미지 그리기
+    # 도약중일 경우 도약 효과 그리기
+    if nowdashl == 2:
+        quickmove.frame = 0
+        quickmove.draw(eunbi.x + 20, eunbi.y + 20)
+    elif nowdashr == 2:
+        quickmove.frame = 1
+        quickmove.draw(eunbi.x - 20, eunbi.y + 20)
+
+        # 점프중일 경우 점프 이펙트와 날개 동작 그리기
     if eunbi.yspd > 0:
         jumpeffect.draw(eunbi.x, eunbi.y - 5)
         wingimage.draw(eunbi.x, eunbi.y + 20)
@@ -326,6 +203,8 @@ def update():
     global mouseclickedx, mouseclickedy  # 마우스 클릭한 x좌표, y좌표
     global nowdrawing # 현재 그림 그리고 있는지 여부
 
+    global nowdashl, nowdashr, skillxcooltime, nowskillxcooltime # x키 - 도약중 여부, 도약 대기 시간
+
     # 게임 플레이중일 때
     if gameplaying == 1:
 
@@ -343,7 +222,33 @@ def update():
 
         wingimage.update() # 날개 이미지 업데이트
 
+        if nowdashr == 1: # 오른쪽 도약 실행시
+            nowdashr = 2
+            skillxcooltime = nowskillxcooltime # 대기시간 켜기
+            eunbi.x += dashamount # 오른쪽으로 크게 이동
+
+        elif nowdashl == 1:  # 왼쪽 도약 실행시
+            nowdashl = 2
+            skillxcooltime = nowskillxcooltime  # 대기시간 켜기
+            eunbi.x -= dashamount  # 왼쪽으로 크게 이동
+
+        # 대기 시간 (쿨타임) 감소
+        if skillxcooltime > 0:
+            skillxcooltime -= 1
+            # 대기 시간이 일정 비율 이하로 줄어들면 잔상표시 지우기
+            if skillxcooltime <= nowskillxcooltime * (3 / 4):
+                nowdashr, nowdashl = 0, 0
+
         delay(0.035)  # 프레임간 지연
+
+        # --- 기술 메뉴 표시 ---
+
+        if skillxcooltime == 0:
+            skill1image.frame = 0 # 도약 실행 가능
+        elif nowdashl == 2 or nowdashr == 2:
+            skill1image.frame = 1 # 도약 실행중
+        elif skillxcooltime > 0:
+            skill1image.frame = 2 # 도약 대기시간중
 
         # --- 이동 : 그림 그리고 있지 않을시에만 ---
 
@@ -441,6 +346,12 @@ def handle_events():
 
     global nowgamestage # 현재 스테이지
 
+    global playersavex, playersavey # 플레이어 좌표 저장
+
+    global ifnowclickl, ifnowclickr, nowdashtime, dashtime # 도약 판정 변수
+    global skillxcooltime # 도약 대기시간 (쿨타임)
+    global nowdashl, nowdashr # 해당 방향으로 도약 여부
+
     for event in events:
 
         # 종료일 때
@@ -456,10 +367,34 @@ def handle_events():
                 keypressedspace = 1  # 스페이스바 눌림
 
             elif event.key == SDLK_LEFT:
-                keypressedleft = 1  # 왼쪽 키 눌림
+                keypressedleft = 1  # 오른쪽 키 눌림
+
+                # 오른쪽 키를 누르고 있지 않을 때
+                if ifnowclickl == 0:
+                    ifnowclickl = 1 # 왼쪽 눌렸음
+                    nowdashtime = dashtime # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
+
+                elif ifnowclickl == 1:
+                    # 시간 안에 같은 키를 누르고 대기 시간이 아닐 경우
+                    if nowdashtime > 0 and skillxcooltime == 0:
+                        nowdashtime = 0
+                        ifnowclickl = 0
+                        nowdashl = 1 # 왼쪽 도약 시작
 
             elif event.key == SDLK_RIGHT:
                 keypressedright = 1  # 오른쪽 키 눌림
+
+                # 오른쪽 키를 누르고 있지 않을 때
+                if ifnowclickr == 0:
+                    ifnowclickr = 1 # 오른쪽 눌렸음
+                    nowdashtime = dashtime # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
+
+                elif ifnowclickr == 1:
+                    # 시간 안에 같은 키를 누르고 대기 시간이 아닐 경우
+                    if nowdashtime > 0 and skillxcooltime == 0:
+                        nowdashtime = 0
+                        ifnowclickr = 0
+                        nowdashr = 1 # 오른쪽 도약 시작
 
             # z키 눌렀을 때
             elif event.key == SDLK_z:  # z키 눌림
@@ -471,7 +406,7 @@ def handle_events():
 
             # esc키를 누를 경우 메인 메뉴로 이동
             elif event.key == SDLK_ESCAPE:
-                game_framework.change_state(mainmenu)
+                game_framework.change_state(frame_main)
                 delay(DELAYTIME)
 
         # 키보드 뗐을 때
@@ -495,9 +430,12 @@ def handle_events():
             elif event.key == SDLK_RIGHT:
                 keypressedright = 0
 
-            # F1키를 누를 경우 중단 또는 재시작
+            # F1키를 누를 경우 중단
             elif event.key == SDLK_F1:
-                gameplaying = 1 - gameplaying
+
+                playersavex, playersavey = eunbi.x, eunbi.y # 플레이어 좌표 저장하기
+
+                game_framework.change_state(frame_pause) # 일시정지 메뉴로 이동
 
             # F3 F4키는 테스트용으로, 각각 다음/이전 스테이지 이동키입니다
 
@@ -530,3 +468,14 @@ def handle_events():
             mousepressed = 1
 
     pass
+
+# 중단되었을 경우
+def pause():
+
+    pass
+
+# 다시 실행된 경우
+def resume():
+
+    pass
+

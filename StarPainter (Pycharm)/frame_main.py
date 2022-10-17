@@ -4,7 +4,8 @@
 
 from pico2d import *    # pico2d 라이브러리 import
 import game_framework   # 게임 프레임워크 임포트
-import gamemenu         # 게임 메뉴 전환시 호출
+
+import frame_game         # 게임 메뉴 전환시 호출
 
 # from StarPainter import * # 게임 프레임워크 Main 파일 임포트
 
@@ -41,7 +42,8 @@ def draw():
 
 # 정보 갱신
 def update():
-    none = 0 # 추가 예정
+    #
+    pass
 
 # 이벤트 핸들러
 def handle_events():
@@ -55,7 +57,7 @@ def handle_events():
 
         # enter키를 누를 경우 게임 메뉴로 이동
         elif event.type == SDL_KEYDOWN and event.key == SDLK_RETURN:
-            game_framework.change_state(gamemenu)
+            game_framework.change_state(frame_game)
             delay(DELAYTIME)
 
         # esc키를 누를 경우 종료
