@@ -55,11 +55,14 @@ def handle_events():
         if event.type == SDL_QUIT:
             game_framework.quit()
 
-        # enter키를 누를 경우 게임 메뉴로 이동
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_RETURN:
-            game_framework.change_state(frame_game)
-            delay(DELAYTIME)
+        # 키를 눌렀을 때
+        elif event.type == SDL_KEYUP:
 
-        # esc키를 누를 경우 종료
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-            game_framework.quit()
+            # enter키를 누를 경우 게임 메뉴로 이동
+            if event.key == SDLK_RETURN:
+                game_framework.change_state(frame_game)
+                delay(DELAYTIME)
+
+            # esc키를 누를 경우 게임 종료
+            if event.key == SDLK_ESCAPE:
+                game_framework.quit()

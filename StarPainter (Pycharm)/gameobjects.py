@@ -5,7 +5,8 @@
 from pico2d import *      # pico2d 라이브러리 import
 import game_framework     # 게임 프레임워크 임포트
 
-import frame_game # 게임 메뉴 변수들 사용
+import frame_game         # 게임 메뉴 변수들 사용
+import frame_main         # 메인 메뉴 변수들 사용
 
 # 플레이어 오브젝트
 class Player:
@@ -158,5 +159,24 @@ class Quickmove:
 
     def draw(self, x, y):
         self.image.clip_draw(self.frame * 50, 0, 43, 43, x, y) # 도약 효과 그리기
+
+    pass
+
+# 도약 효과
+
+class Star:
+
+    def __init__(self):
+        self.image = None # 아래 참고
+        self.ifdraw = False # 그렸는지 판정 변수
+        self.num = None # 현위치 번째
+
+    def draw(self, x, y):
+        if self.ifdraw:
+            self.image = load_image('starpainted.png')  # 별 이미지 이미지 그리기
+        else:
+            self.image = load_image('starplace.png')  # 목표 지점 이미지 그리기
+
+        self.image.draw(x, y) # 별 이미지 그리기
 
     pass
