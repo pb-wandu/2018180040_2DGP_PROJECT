@@ -98,20 +98,24 @@ starplacesset = [ # 별을 표시할 위치zzz
 ]
 
 # 스테이지 확인
+
+stardrawed = [0,0,0,0,0,0,0,0,0]
+
 def stagecheck(stage, arr):
     global nowcollectedstar # 현재 모은 별
     global starplaces # 별을 저장할 배열
 
     global nowdrawing  # 현재 그림 그리고 있는지 여부
 
-    worldnow = int(stage / 10) # 현재 차원
-    placenow = stage % 10 # 현재 장소
-    nowstageneedstar = arr[worldnow-1][placenow-1] # 현재 스테이지에서 필요한 별
+    global ifstagedrawed  # 스테이지 그려짐 여부
 
+    worldnow = int(stage / 10)  # 현재 차원
+    placenow = stage % 10  # 현재 장소
+    nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
     starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
 
     # starplacesset에서 현재 스테이지 좌표가 있는 위치
-    starplacessetplace = (worldnow-1) * PLACENUM + (placenow-1)
+    starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
 
     for i in range(nowstageneedstar):
 
@@ -128,10 +132,12 @@ def stagecheck(stage, arr):
             drawx, drawy = eunbi.x + 15, eunbi.y + 17
 
         # 만약 별이 그려지지 않은 경우
-        if not starplaces[i].ifdraw and nowdrawing == 1:
-            # 별을 그리는 좌표가 목표 지점의 안에 있을 때
-            if x - STARSIZE/2 <= drawx <= x + STARSIZE/2 and y - STARSIZE/2 <= drawy <= y + STARSIZE/2:
-                starplaces[i].ifdraw = True # 별을 그렸음
+        if not stardrawed[i] and nowdrawing == 1:
+            # 별을 그리는 좌표가 목표 지점의 안에 있을 때 - 10px 별 크기 보정 적용
+            if x - (STARSIZE / 2 - 10) <= drawx <= (x + STARSIZE / 2 + 10)\
+                    and (y - STARSIZE / 2 - 10) <= drawy <= (y + STARSIZE / 2 + 10):
+                stardrawed[i] = True
+                starplaces[i].ifdraw = True  # 별을 그렸음
                 nowdrawing = 0
                 nowcollectedstar += 1  # 별을 하나 그림
 
@@ -143,20 +149,36 @@ def stagecheck(stage, arr):
     pass
 
 # 스테이지 그리기
+
+ifstagedrawed = 0 # 스테이지 그려짐 여부
+
 def stagedraw(stage, arr):
     global nowcollectedstar # 현재 모은 별
     global starplaces # 별을 저장할 배열
 
     global nowdrawing  # 현재 그림 그리고 있는지 여부
+    global ifstagedrawed  # 스테이지 그려짐 여부
 
-    worldnow = int(stage / 10) # 현재 차원
-    placenow = stage % 10 # 현재 장소
-    nowstageneedstar = arr[worldnow-1][placenow-1] # 현재 스테이지에서 필요한 별
+    worldnow = int(stage / 10)  # 현재 차원
+    placenow = stage % 10  # 현재 장소
+    nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
+    starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
 
     # starplacesset에서 현재 스테이지 좌표가 있는 위치
-    starplacessetplace = (worldnow-1) * PLACENUM + (placenow-1)
+    starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
+
+    worldnow = int(stage / 10)  # 현재 차원
+    placenow = stage % 10  # 현재 장소
+    nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
+
+    # starplacesset에서 현재 스테이지 좌표가 있는 위치
+    starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
 
     for i in range(nowstageneedstar):
+
+        if stardrawed[i]:
+            starplaces[i].ifdraw = True
+
         x = starplacesset[starplacessetplace][i][0]
         y = starplacesset[starplacessetplace][i][1]
         starplaces[i].draw(x, y)
@@ -176,12 +198,14 @@ def enter():
     global wingimage
 
     global skill1image, skill2image, skill3image
-
     global quickmove
+    global ifstagedrawed
 
     imagebg = load_image('gamemenuimg.png')  # 배경 이미지
 
     handle_events() # 이벤트 핸들러
+
+    ifstagedrawed = 0  # 스테이지 그려짐 여부 초기화
 
     # 오브젝트 생성 및 초기화
 
@@ -264,8 +288,6 @@ def draw():
 
     # 그리는 중인 경우별 그리기 효과 표시
     if nowdrawing == 1:
-        draweffect.frame = (draweffect.frame + 1) % 5
-        draweffect.frame = 0
 
         if eunbi.nowstate == LEFTDRAWING:
             draweffect.draw(eunbi.x - 15, eunbi.y + 17)
@@ -395,11 +417,9 @@ def update():
 
         # 별 그리기 효과 표시
 
-        draweffect.frame = (draweffect.frame + 1) % 5
+        draweffect.update()
 
-        draweffect.frame = 0
-
-        delay(0.1)  # 프레임간 지연
+        delay(0.02)  # 프레임간 지연
         eunbi.yspd = 0
         nowdrawing = 0
 
@@ -470,7 +490,7 @@ def handle_events():
                 # 왼쪽 키를 누르고 있을 때
                 elif ifnowclickl == 1:
                     # 시간 안에 다시 같은 키를 누르고 그림 그리는 중이 아니고 대기 시간이 아니라면
-                    if nowdrawing == 0 and nowdashtime > 0 and skillxcooltime == 0:
+                    if keypressedz == 0 and nowdashtime > 0 and skillxcooltime == 0:
                         nowdashtime = 0
                         ifnowclickl = 0
                         nowdashl = 1 # 왼쪽 도약 시작
@@ -486,7 +506,7 @@ def handle_events():
                 # 오른쪽 키를 누르고 있을 때
                 elif ifnowclickr == 1:
                     # 시간 안에 다시 같은 키를 누르고 그림 그리는 중이 아니고 대기 시간이 아니라면
-                    if nowdrawing == 0 and nowdashtime > 0 and skillxcooltime == 0:
+                    if keypressedz == 0 and nowdashtime > 0 and skillxcooltime == 0:
                         nowdashtime = 0
                         ifnowclickr = 0
                         nowdashr = 1 # 오른쪽 도약 시작
@@ -498,11 +518,6 @@ def handle_events():
             # a키 눌렀을 때
             # elif event.key == SDLK_q: # a키 눌림
             #    keypressedq = 1
-
-            # esc키를 누를 경우 메인 메뉴로 이동
-            elif event.key == SDLK_ESCAPE:
-                game_framework.change_state(frame_main)
-                delay(DELAYTIME)
 
         # 키보드 뗐을 때
         elif event.type == SDL_KEYUP:
@@ -549,6 +564,11 @@ def handle_events():
                         nowgamestage -= 4  # 1지역으로
                     else:
                         nowgamestage += 1  # 다음 지역으로
+
+            # esc키를 누를 경우 메인 메뉴로 이동
+            elif event.key == SDLK_ESCAPE:
+                game_framework.change_state(frame_main)
+                delay(DELAYTIME)
 
         # 마우스 눌렀을 때
         elif event.type == SDL_MOUSEBUTTONDOWN:

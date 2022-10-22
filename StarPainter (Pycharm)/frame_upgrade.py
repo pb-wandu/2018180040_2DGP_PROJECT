@@ -60,6 +60,7 @@ def handle_events():
                     frame_game.nowgamestage -= 4  # 1지역으로
 
                 frame_game.nowcollectedstar = 0 # 모은 별 개수 초기화
+                frame_game.ifstagedrawed = 0 # 스테이지 그려짐 여부 초기화
 
                 # 키 입력 초기화
                 frame_game.keypressedleft = 0

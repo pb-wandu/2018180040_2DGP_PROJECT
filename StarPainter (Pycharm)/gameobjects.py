@@ -74,13 +74,24 @@ class Draweffect:
     def __init__(self):
         self.image = load_image('starlight.png')  # 날기(점프) 효과 이미지 (임시)
         self.frame = 0
+        self.dir = 1
 
     def draw(self, x, y):
-        self.image.clip_draw(self.frame * 20, 0, 10, 10, x, y - self.frame * 5)
+        self.image.clip_draw(self.frame * 30, 0, 20, 20, x, y)
 
     def update(self):
-        if self.frame < 5:
+        if self.dir == 1:
             self.frame += 1
+            if self.frame == 4:
+                self.dir = 2
+
+        elif self.dir == 2:
+            self.frame -= 1
+            if self.frame == 1:
+                self.dir = 1
+
+
+
 
     pass
 
@@ -169,7 +180,6 @@ class Star:
     def __init__(self):
         self.image = None # 아래 참고
         self.ifdraw = False # 그렸는지 판정 변수
-        self.num = None # 현위치 번째
 
     def draw(self, x, y):
         if self.ifdraw:
