@@ -1,7 +1,5 @@
 ### [별그림자 이야기] 별그림자 회랑 (강화 메뉴) 파일입니다
 
-### [별그림자 이야기] 일시정지 메뉴 파일입니다
-
 # ------------ import 파일들 ------------
 
 from pico2d import *      # pico2d 라이브러리 import
@@ -11,6 +9,8 @@ import frame_game         # 게임 메뉴 전환시 호출
 import frame_main         # 프로그램 전체에 해당되는 값 사용
 
 upgradeimage = None
+
+# ------------ 게임 프레임워크 동작들 ------------
 
 # 메뉴 진입
 def enter():

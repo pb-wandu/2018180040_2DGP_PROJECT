@@ -19,33 +19,31 @@ DELAYTIME = 0.005   # 지연 시간
 
 # ------------ 변수들 ------------
 
-imagebg = None # 배경 이미지
-eunbi = None # 별그림자 은비(플레이어)
-ground = None # 발판
-jumpeffect = None # 점프 효과
-draweffect = None # 그리기 효과
-drawstage = None # 스테이지 표시
+imagebg, eunbi, ground = None, None, None # 배경 이미지, 별그림자 은비(플레이어), 발판
+jumpeffect, draweffect = None, None # 점프 효과, 그리기 효과
+drawnowstage = None # 스테이지 표시
 pauseimage = None # 일시정지 이미지
 wingimage = None # 날개 이미지
-
 skill1image, skill2image, skill3image = None, None, None # 기술 사용 가능여부 이미지
 quickmove = None # 도약 효과 이미지
 
 keypressing = 0  # 키보드 입력중 여부
 mousepressed = 0 # 마우스 클릭한 여부
 
-keypressedleft = 0  # 왼쪽 키 입력된 여부
-keypressedright = 0  # 오른쪽 키 입력된 여부
-keypressedup = 0  # 위쪽 키 입력된 여부
-keypresseddown = 0  # 아래쪽 키 입력된 여부
-
-keypressedspace = 0 # 스페이스바 입력여부
-keypressedz = 0 # z키 입력여부
-keypresseda = 0 # a키 입력여부
+# 키 각각 입력 여부
+keypressedleft, keypressedright, keypressedup, keypresseddown = 0, 0, 0, 0
+keypressedspace, keypressedz, keypresseda = 0, 0, 0
 
 mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
 
 playersavex, playersavey = UNSET, UNSET # 플레이어 좌표 저장
+
+# 난이도 설정 (// 추후 난이도에 따라 세부사항 적용 예정)
+
+EASY, NORMAL, HARD = 11, 12, 13
+
+diff_starpainter = EASY # 현재 별그림자 난이도
+diff_planet = EASY # 현재 행성 난이도
 
 # ------------ 플레이어 동작 관련 ------------
 
@@ -148,6 +146,31 @@ def stagecheck(stage, arr):
 
     pass
 
+# 효과 그리기
+
+def effectsdraw():
+
+    # 도약중일 경우 도약 효과 그리기
+    if nowdashl == 2:
+        quickmove.frame = 0
+        quickmove.draw(eunbi.x + 20, eunbi.y + 20)
+    elif nowdashr == 2:
+        quickmove.frame = 1
+        quickmove.draw(eunbi.x - 20, eunbi.y + 20)
+
+    # 점프중일 경우 점프 이펙트와 날개 동작 그리기
+    if eunbi.yspd > 0:
+        jumpeffect.draw(eunbi.x, eunbi.y - 5)
+        wingimage.draw(eunbi.x, eunbi.y + 20)
+
+    # 그리는 중인 경우별 그리기 효과 표시
+    if nowdrawing == 1:
+
+        if eunbi.nowstate == LEFTDRAWING:
+            draweffect.draw(eunbi.x - 15, eunbi.y + 17)
+        elif eunbi.nowstate == RIGHTDRAWING:
+            draweffect.draw(eunbi.x + 15, eunbi.y + 17)
+
 # 스테이지 그리기
 
 ifstagedrawed = 0 # 스테이지 그려짐 여부
@@ -193,7 +216,7 @@ def enter():
     global ground
     global jumpeffect
     global draweffect
-    global drawstage
+    global drawnowstage
     global pauseimage
     global wingimage
 
@@ -222,8 +245,8 @@ def enter():
     jumpeffect.__init__()
     draweffect = gameobjects.Draweffect()  # 그리기 효과 오브젝트
     draweffect.__init__()
-    drawstage = gameobjects.Drawstage()  # 스테이지 표시 오브젝트
-    drawstage.__init__()
+    drawnowstage = gameobjects.Drawnowstage()  # 스테이지 표시 오브젝트
+    drawnowstage.__init__()
     wingimage = gameobjects.Wingimage()  # 날개 오브젝트
     wingimage.__init__()
 
@@ -247,14 +270,14 @@ def exit():
     global eunbi, wingimage
     global ground
     global jumpeffect, draweffect
-    global drawstage
+    global drawnowstage
     global skill1image, skill2image, skill3image
 
     del imagebg
     del eunbi, wingimage
     del ground
     del jumpeffect, draweffect
-    del drawstage
+    del drawnowstage
     del skill1image, skill2image, skill3image
 
     pass
@@ -267,37 +290,15 @@ def draw():
     imagebg.draw(WINDOWXSIZE / 2, WINDOWYSIZE / 2)  # 배경 이미지 그리기
     ground.draw(340, 140)  # 땅 그리기
 
-    drawstage.draw(nowgamestage)  # 스테이지 그리기
+    drawnowstage.draw(nowgamestage)  # 스테이지 표시 그리기
 
     skill1image.draw(472, 56)  # 기술 1 그리기
     skill2image.draw(558, 56)  # 기술 2 그리기
     skill3image.draw(644, 56)  # 기술 3 그리기
 
-    # 도약중일 경우 도약 효과 그리기
-    if nowdashl == 2:
-        quickmove.frame = 0
-        quickmove.draw(eunbi.x + 20, eunbi.y + 20)
-    elif nowdashr == 2:
-        quickmove.frame = 1
-        quickmove.draw(eunbi.x - 20, eunbi.y + 20)
-
-    # 점프중일 경우 점프 이펙트와 날개 동작 그리기
-    if eunbi.yspd > 0:
-        jumpeffect.draw(eunbi.x, eunbi.y - 5)
-        wingimage.draw(eunbi.x, eunbi.y + 20)
-
-    # 그리는 중인 경우별 그리기 효과 표시
-    if nowdrawing == 1:
-
-        if eunbi.nowstate == LEFTDRAWING:
-            draweffect.draw(eunbi.x - 15, eunbi.y + 17)
-        elif eunbi.nowstate == RIGHTDRAWING:
-            draweffect.draw(eunbi.x + 15, eunbi.y + 17)
-
+    effectsdraw() # 효과 그리기
+    stagedraw(nowgamestage, needtocollectstar) # 스테이지 그리기
     eunbi.draw()  # 은비 (플레이어) 그리기
-
-    # 스테이지 그리기
-    stagedraw(nowgamestage, needtocollectstar)
 
     update_canvas()
 
@@ -340,8 +341,6 @@ def animationshow():
     delay(0.035)  # 프레임간 지연
 
     pass
-
-
 
 # ----- 정보 갱신 -----
 

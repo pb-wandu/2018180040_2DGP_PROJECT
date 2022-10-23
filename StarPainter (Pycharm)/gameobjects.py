@@ -1,12 +1,15 @@
 ### [별그림자 이야기] 게임 오브젝트 파일입니다
 
+# 프레임워크가 아닌 오브젝트 모음 파일입니다
+
 # ------------ import 파일들 ------------
 
 from pico2d import *      # pico2d 라이브러리 import
 import game_framework     # 게임 프레임워크 임포트
 
 import frame_game         # 게임 메뉴 변수들 사용
-import frame_main         # 메인 메뉴 변수들 사용
+
+# ------------ 오브젝트 클래스들 ------------
 
 # 플레이어 오브젝트
 class Player:
@@ -43,7 +46,6 @@ class Player:
         self.image.clip_draw(self.frame * 40, abs(self.nowstate) * 50, 33, 43, self.x, self.y + 20)
 
     pass
-
 
 # 발판 오브젝트
 class Ground:
@@ -97,7 +99,7 @@ class Draweffect:
 
 # 스테이지 표시 오브젝트
 
-class Drawstage:
+class Drawnowstage:
 
     def __init__(self):
         self.imageworld = load_image('level_world.png')  # 날기(점프) 효과 이미지 (임시)
