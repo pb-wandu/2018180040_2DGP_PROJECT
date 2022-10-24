@@ -87,9 +87,10 @@ def run(start_state):
         stack[-1].exit()
         stack.pop()
 
-def test_game_framework():
-    start_state = TestGameState('StartState')
-    run(start_state)
+# 직접 실행시켰을 경우
+
+def test_self():
+    inputany = input("StarPainter.py 파일로 접속해주세요. 아무 키 눌러 종료")
 
 if __name__ == '__main__':
-    test_game_framework()
+    test_self()

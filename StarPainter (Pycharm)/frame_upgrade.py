@@ -70,3 +70,11 @@ def handle_events():
                 game_framework.change_state(frame_game) # 게임 메뉴로 이동
                 delay(frame_main.DELAYTIME)
 
+# 직접 실행시켰을 경우
+
+def test_self():
+    inputany = input("StarPainter.py 파일로 접속해주세요. 아무 키 눌러 종료")
+
+if __name__ == '__main__':
+    test_self()
+

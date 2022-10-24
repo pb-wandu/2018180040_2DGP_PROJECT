@@ -51,13 +51,21 @@ def handle_events():
         # 키를 눌렀다 뗀 경우
         elif event.type == SDL_KEYUP:
 
-            # F1키를 다시 누를 경우 게임 메뉴로 이동
+            # F1키를 다시 누를 경우 게임 메뉴로 되돌아가기
             if event.key == SDLK_F1:
-                game_framework.change_state(frame_game)
+                game_framework.pop_state()
                 delay(frame_main.DELAYTIME)
 
-            # esc키를 누를 경우 게임 메뉴로 이동
+            # esc키를 누를 경우 게임 메뉴로 되돌아가기
             elif event.key == SDLK_ESCAPE:
-                game_framework.change_state(frame_game)
+                game_framework.pop_state()
                 delay(frame_main.DELAYTIME)
+
+# 직접 실행시켰을 경우
+
+def test_self():
+    inputany = input("StarPainter.py 파일로 접속해주세요. 아무 키 눌러 종료")
+
+if __name__ == '__main__':
+    test_self()
 

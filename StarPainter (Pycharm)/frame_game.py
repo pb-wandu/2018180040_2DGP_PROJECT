@@ -235,10 +235,6 @@ def enter():
     eunbi = gameobjects.Player()  # 별그림자 은비 (플레이어 오브젝트)
     eunbi.__init__()
 
-    # 중단시 저장해둔 좌표가 있다면 불러오기
-    if playersavex != UNSET:
-        eunbi.x, eunbi.y = playersavex, playersavey
-
     ground = gameobjects.Ground()  # 발판 오브젝트
     ground.__init__()
     jumpeffect = gameobjects.Jumpeffect()  # 점프 효과 오브젝트
@@ -541,10 +537,7 @@ def handle_events():
 
             # F1키를 누를 경우 중단
             elif event.key == SDLK_F1:
-
-                playersavex, playersavey = eunbi.x, eunbi.y # 플레이어 좌표 저장하기
-
-                game_framework.change_state(frame_pause) # 일시정지 메뉴로 이동
+                game_framework.push_state(frame_pause) # 일시정지 메뉴 열기
 
             # F3 F4키는 테스트용으로, 각각 다음/이전 스테이지 이동키입니다
 
@@ -582,11 +575,28 @@ def handle_events():
 
 # 중단되었을 경우
 def pause():
+    global playersavex, playersavey
+
+    # 은비 좌표 저장하기
+    playersavex, playersavey = eunbi.x, eunbi.y
 
     pass
 
 # 다시 실행된 경우
 def resume():
 
+    # 저장해둔 은비 좌표 불러오기
+    eunbi.x, eunbi.y = playersavex, playersavey
+
     pass
 
+
+    pass
+
+# 직접 실행시켰을 경우
+
+def test_self():
+    inputany = input("StarPainter.py 파일로 접속해주세요. 아무 키 눌러 종료")
+
+if __name__ == '__main__':
+    test_self()
