@@ -19,7 +19,7 @@ DELAYTIME = 0.005   # 지연 시간
 
 # ------------ 변수들 ------------
 
-imagebg, eunbi, ground = None, None, None # 배경 이미지, 별그림자 은비(플레이어), 발판
+imagebg, imagestagebg, eunbi, ground = None, None, None, None # 배경 이미지, 스테이지 배경, 별그림자 은비(플레이어), 발판
 jumpeffect, draweffect = None, None # 점프 효과, 그리기 효과
 drawnowstage = None # 스테이지 표시
 pauseimage = None # 일시정지 이미지
@@ -90,14 +90,14 @@ needtocollectstar = \
 starplaces = [] # 별을 저장할 배열
 
 # 별의 좌표 범위는 [10~670, 200~690]으로 지정합니다
-starplacesset = [ # 별을 표시할 위치zzz
-    [ [100, 570], [500, 240] ], # 1-1
+starplacesset = [ # 별을 표시할 위치
+    [ [100, 500], [500, 240], [UNSET, UNSET], [UNSET, UNSET] ], # 1-1
     [ [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET] ] # 1-2
 ]
 
 # 스테이지 확인
 
-stardrawed = [0,0,0,0,0,0,0,0,0]
+stardrawed = [False, False, False, False, False, False, False, False, False, False] # 해당 위치에 별이 그려졌는지 확인
 
 def stagecheck(stage, arr):
     global nowcollectedstar # 현재 모은 별
@@ -201,6 +201,8 @@ def stagedraw(stage, arr):
 
         if stardrawed[i]:
             starplaces[i].ifdraw = True
+        else:
+            starplaces[i].ifdraw = False
 
         x = starplacesset[starplacessetplace][i][0]
         y = starplacesset[starplacessetplace][i][1]
@@ -211,7 +213,7 @@ def stagedraw(stage, arr):
 # ----- 메뉴 진입 -----
 
 def enter():
-    global imagebg
+    global imagebg, imagestagebg
     global eunbi
     global ground
     global jumpeffect
@@ -225,6 +227,8 @@ def enter():
     global ifstagedrawed
 
     imagebg = load_image('gamemenuimg.png')  # 배경 이미지
+    imagestagebg = load_image('stagebg.png')  # 스테이지 배경 이미지
+
 
     handle_events() # 이벤트 핸들러
 
@@ -262,14 +266,14 @@ def enter():
 # ----- 메뉴 종료 -----
 
 def exit():
-    global imagebg
+    global imagebg, imagestagebg
     global eunbi, wingimage
     global ground
     global jumpeffect, draweffect
     global drawnowstage
     global skill1image, skill2image, skill3image
 
-    del imagebg
+    del imagebg, imagestagebg
     del eunbi, wingimage
     del ground
     del jumpeffect, draweffect
@@ -284,7 +288,8 @@ def draw():
     clear_canvas() # 화면 초기화
 
     imagebg.draw(WINDOWXSIZE / 2, WINDOWYSIZE / 2)  # 배경 이미지 그리기
-    ground.draw(340, 140)  # 땅 그리기
+    imagestagebg.draw(340, 410)  # 스테이지 배경 이미지 그리기
+    ground.draw(340, 136)  # 땅 그리기
 
     drawnowstage.draw(nowgamestage)  # 스테이지 표시 그리기
 
@@ -403,8 +408,8 @@ def update():
         eunbi.yspd -= 0.9
         eunbi.y += eunbi.yspd
 
-        if eunbi.y < 150:
-            eunbi.y = 150
+        if eunbi.y < 130:
+            eunbi.y = 130
             eunbi.yspd = 0
 
     # 그림 그리고 있을 경우 약간 그림 그리는 지연시간 뒤 풀림

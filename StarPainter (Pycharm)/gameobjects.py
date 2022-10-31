@@ -51,7 +51,7 @@ class Player:
 class Ground:
 
     def __init__(self):
-        self.image = load_image('groundtmp.png')  # 발판 이미지 (임시)
+        self.image = load_image('ground.png')  # 발판 이미지 (임시)
 
     def draw(self, x, y):
         self.image.draw(x, y)  # 발판 이미지 그리기
@@ -91,9 +91,6 @@ class Draweffect:
             self.frame -= 1
             if self.frame == 1:
                 self.dir = 1
-
-
-
 
     pass
 
