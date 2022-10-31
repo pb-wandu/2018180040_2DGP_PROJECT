@@ -62,6 +62,9 @@ def handle_events():
                 frame_game.nowcollectedstar = 0 # 모은 별 개수 초기화
                 frame_game.ifstagedrawed = 0 # 스테이지 그려짐 여부 초기화
 
+                # 최대 체력과 기력으로 스테이지 시작
+                frame_game.lifenow, frame_game.energynow = frame_game.lifemax, frame_game.energymax
+
                 # 키 입력 초기화
                 frame_game.keypressedleft = 0
                 frame_game.keypressedright = 0

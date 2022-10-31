@@ -190,7 +190,46 @@ class Star:
 
     pass
 
-# 직접 실행시켰을 경우
+# 체력 기력 표시칸
+
+class Lifeenergybar:
+
+    def __init__(self):
+        self.image = load_image('lifeenergybar.png')  # 도약 효과 이미지 그리기
+        self.frame = 0  # 애니메이션 프레임
+
+    def draw(self, x, y):
+        self.image.draw(x, y)
+
+    pass
+
+# 체력 표시
+
+class Lifeimage:
+
+    def __init__(self):
+        self.image = load_image('lifeimage.png')
+        self.frame = 0  # 애니메이션 프레임
+
+    def draw(self, x, y, drawl):
+        self.image.clip_draw(0, 0, drawl, 30, x, y)
+
+    pass
+
+# 기력 표시
+
+class Energyimage:
+
+    def __init__(self):
+        self.image = load_image('energyimage.png')  # 도약 효과 이미지 그리기
+        self.frame = 0  # 애니메이션 프레임
+
+    def draw(self, x, y, drawl):
+        self.image.clip_draw(0, 0, drawl, 30, x, y)
+
+    pass
+
+# ------------ 직접 실행시켰을 경우 ------------
 
 def test_self():
     inputany = input("StarPainter.py 파일로 접속해주세요. 아무 키 눌러 종료")

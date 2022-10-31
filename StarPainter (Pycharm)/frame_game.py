@@ -27,6 +27,8 @@ wingimage = None # 날개 이미지
 skill1image, skill2image, skill3image = None, None, None # 기술 사용 가능여부 이미지
 quickmove = None # 도약 효과 이미지
 
+lifeenergybar, lifeimage, energyimage = None, None, None # 바탕, 체력, 기력 이미지
+
 keypressing = 0  # 키보드 입력중 여부
 mousepressed = 0 # 마우스 클릭한 여부
 
@@ -99,6 +101,19 @@ starplacesset = [ # 별을 표시할 위치
 
 stardrawed = [False, False, False, False, False, False, False, False, False, False] # 해당 위치에 별이 그려졌는지 확인
 
+lifemax, energymax = 100, 100 # 시작시엔 최대 체력 100으로 시작
+lifenow, energynow = 100, 100 # 시작시엔 최대 기력 100으로 시작
+
+nowlifelength = 0  # 전체 제력 대비 현재 체력
+nowenergylength = 0  # 전체 기력 대비 현재 기력
+lifeimageadjust = 0 # 왼쪽으로 정렬 이동값
+energyimageadjust = 0 # 왼쪽으로 정렬 이동값
+
+# (// 기력 관련 변수는 테스트하면서 값을 조정합니다)
+groundaddenergy = 2.4 # 땅에서 점점 회복되는 기력
+drawneedenergy = 3 # 그리는데 필요한 기력
+yjumpneedenergy = 7.5  # 날기(점프)에 필요한 기력
+
 def stagecheck(stage, arr):
     global nowcollectedstar # 현재 모은 별
     global starplaces # 별을 저장할 배열
@@ -107,10 +122,20 @@ def stagecheck(stage, arr):
 
     global ifstagedrawed  # 스테이지 그려짐 여부
 
+    global nowlifelength, nowenergylength, lifeimageadjust, energyimageadjust
+    global lifemax, lifenow, energymax, energynow
+
     worldnow = int(stage / 10)  # 현재 차원
     placenow = stage % 10  # 현재 장소
     nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
     starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
+
+    # 체력, 기력 정보 관리
+
+    nowlifelength = 120 * lifenow / lifemax # 전체 제력 대비 현재 체력
+    nowenergylength = 120 * energynow / energymax # 전체 기력 대비 현재 기력
+    lifeimageadjust = (120 - nowlifelength) / 2 # 왼쪽으로 정렬 이동값
+    energyimageadjust = (120 - nowenergylength) / 2 # 왼쪽으로 정렬 이동값
 
     # starplacesset에서 현재 스테이지 좌표가 있는 위치
     starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
@@ -182,13 +207,22 @@ def stagedraw(stage, arr):
     global nowdrawing  # 현재 그림 그리고 있는지 여부
     global ifstagedrawed  # 스테이지 그려짐 여부
 
+    global lifeenergybar, lifeimage, energyimage  # 바탕, 체력, 기력 이미지
+
+    global nowlifelength, nowenergylength, lifeimageadjust, energyimageadjust
+
     worldnow = int(stage / 10)  # 현재 차원
     placenow = stage % 10  # 현재 장소
     nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
     starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
 
-    # starplacesset에서 현재 스테이지 좌표가 있는 위치
-    starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
+    # 체력, 기력 그리기
+
+    lifeenergybar.draw(150, 82) # 체력 표시 자리
+    lifeenergybar.draw(150, 38) # 기력 표시 자리
+
+    lifeimage.draw(150 - lifeimageadjust, 82, int(nowlifelength))
+    energyimage.draw(150 - energyimageadjust, 38, int(nowenergylength))
 
     worldnow = int(stage / 10)  # 현재 차원
     placenow = stage % 10  # 현재 장소
@@ -226,9 +260,10 @@ def enter():
     global quickmove
     global ifstagedrawed
 
+    global lifeenergybar, lifeimage, energyimage  # 바탕, 체력, 기력 이미지
+
     imagebg = load_image('gamemenuimg.png')  # 배경 이미지
     imagestagebg = load_image('stagebg.png')  # 스테이지 배경 이미지
-
 
     handle_events() # 이벤트 핸들러
 
@@ -259,6 +294,15 @@ def enter():
 
     quickmove = gameobjects.Quickmove() # 동작 효과 표시
     quickmove.__init__()
+
+    lifeenergybar = gameobjects.Lifeenergybar() # 체력, 기력 바탕 이미지
+    lifeenergybar.__init__()
+
+    lifeimage = gameobjects.Lifeimage() # 체력 이미지
+    lifeimage.__init__()
+
+    energyimage = gameobjects.Energyimage() # 기력 이미지
+    energyimage.__init__()
 
     pass
 
@@ -355,6 +399,11 @@ def update():
     global nowdrawing # 현재 그림 그리고 있는지 여부
     global skill1image, skill2image, skill3image # 기술 이미지
 
+    global energynow  # 현재 기력
+    global drawneedenergy # 그리는데 필요한 기력
+    global groundaddenergy # 땅에서 점점 회복되는 기력
+    global yjumpneedenergy # 날기(점프)에 필요한 기력
+
     # --- 기술 메뉴 표시 ---
 
     if skillxcooltime == 0:
@@ -376,9 +425,16 @@ def update():
                 eunbi.movexy(-eunbi.xspd, 0)  # 플레이어 이동
 
             elif keypressedz == 1:  # z키 눌렀을 경우
-                eunbi.nowstate = LEFTDRAWING
-                eunbi.frame = 0  # 프레임 지정
-                nowdrawing = 1  # 현재 그리고 있음
+                if energynow > 0:
+                    eunbi.nowstate = LEFTDRAWING
+                    eunbi.frame = 0  # 프레임 지정
+                    nowdrawing = 1  # 현재 그리고 있음
+
+                    # 기력 소모
+                    energynow -= drawneedenergy
+                    if energynow < 0:
+                        energynow = 0
+
 
         elif keypressedright == 1:
             if keypressedz == 0:
@@ -386,19 +442,31 @@ def update():
                 eunbi.movexy(+eunbi.xspd, 0)  # 플레이어 이동
 
             elif keypressedz == 1:  # z키 눌렀을 경우
-                eunbi.nowstate = RIGHTDRAWING
-                eunbi.frame = 1  # 프레임 지정
-                nowdrawing = 1  # 현재 그리고 있음
+                if energynow > 0:
+                    eunbi.nowstate = RIGHTDRAWING
+                    eunbi.frame = 1  # 프레임 지정
+                    nowdrawing = 1  # 현재 그리고 있음
+
+                    # 기력 소모
+                    energynow -= drawneedenergy
+                    if energynow < 0:
+                        energynow = 0
 
         else:
             eunbi.frame = 0
 
         # 스페이스바 눌렀을 경우 날기(점프)
         if keypressedspace == 1:
+
             # 위로 날기
             eunbi.yspd = eunbi.yjumpamount
             eunbi.y += 0.2
             keypressedspace = 0
+
+            # 기력 소모
+            energynow -= yjumpneedenergy
+            if energynow < 0:
+                energynow = 0
 
         # y 이동속도 하한 제한
         if eunbi.yspd < -16:
@@ -408,9 +476,16 @@ def update():
         eunbi.yspd -= 0.9
         eunbi.y += eunbi.yspd
 
+        # 땅 위에 있을 경우
         if eunbi.y < 130:
             eunbi.y = 130
             eunbi.yspd = 0
+
+            # 기력을 점차 회복한다
+            if energynow < energymax:
+                energynow += groundaddenergy
+                if energynow > energymax:
+                    energynow = energymax
 
     # 그림 그리고 있을 경우 약간 그림 그리는 지연시간 뒤 풀림
     elif nowdrawing == 1:
