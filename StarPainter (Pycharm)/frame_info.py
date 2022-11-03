@@ -15,6 +15,10 @@ infoimage = None
 def enter():
     global infoimage
     infoimage = load_image('infoimg.png')  # 일시정지 이미지
+
+    # 현위치 지정
+    frame_main.nowplace = frame_main.PL_INFO
+
     pass
 
 # 메뉴 종료

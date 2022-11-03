@@ -5,6 +5,7 @@
 from pico2d import *      # pico2d 라이브러리 import
 import game_framework     # 게임 프레임워크 임포트
 import gameobjects        # 게임 오브젝트 임포트
+import object_player      # 플레이어 오브젝트 임포트
 
 import frame_main         # 메인 메뉴 전환시 호출
 import frame_upgrade      # 별그림자 회랑 (강화) 메뉴 전환시 호출
@@ -20,21 +21,26 @@ DELAYTIME = 0.005   # 지연 시간
 # ------------ 변수들 ------------
 
 imagebg, imagestagebg, eunbi, ground = None, None, None, None # 배경 이미지, 스테이지 배경, 별그림자 은비(플레이어), 발판
-jumpeffect, draweffect = None, None # 점프 효과, 그리기 효과
 drawnowstage = None # 스테이지 표시
 pauseimage = None # 일시정지 이미지
-wingimage = None # 날개 이미지
 skill1image, skill2image, skill3image = None, None, None # 기술 사용 가능여부 이미지
 quickmove = None # 도약 효과 이미지
 
 lifeenergybar, lifeimage, energyimage = None, None, None # 바탕, 체력, 기력 이미지
 
+jumpeffect = None # 점프 효과 오브젝트
+wingimage = None  # 날개 오브젝트
+quickmove = None  # 동작 효과 표시
+draweffect = None  # 그리기 효과 오브젝트
+
 keypressing = 0  # 키보드 입력중 여부
 mousepressed = 0 # 마우스 클릭한 여부
 
+
+
 # 키 각각 입력 여부
 keypressedleft, keypressedright, keypressedup, keypresseddown = 0, 0, 0, 0
-keypressedspace, keypressedz, keypresseda = 0, 0, 0
+keypressedz, keypresseda = 0, 0
 
 mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
 
@@ -48,10 +54,6 @@ diff_starpainter = EASY # 현재 별그림자 난이도
 diff_planet = EASY # 현재 행성 난이도
 
 # ------------ 플레이어 동작 관련 ------------
-
-# 별그림자 은비 == 플레이어블 캐릭터 이름
-PLAYERXSIZE, PLAYERYSIZE = 40, 30  # 별그림자 은비 크기
-PLAYERXSTART, PLAYERYSTART = 340, 150  # 별그림자 은비 시작좌표
 
 # 플레이어 동작들 (멈춤, 왼쪽, 오른쪽, 왼쪽 그리기, 오른쪽 그리기)
 STOP, LEFT, RIGHT, LEFTDRAWING, RIGHTDRAWING = 0, 1, 2, -3, 3
@@ -171,30 +173,6 @@ def stagecheck(stage, arr):
 
     pass
 
-# 효과 그리기
-
-def effectsdraw():
-
-    # 도약중일 경우 도약 효과 그리기
-    if nowdashl == 2:
-        quickmove.frame = 0
-        quickmove.draw(eunbi.x + 20, eunbi.y + 20)
-    elif nowdashr == 2:
-        quickmove.frame = 1
-        quickmove.draw(eunbi.x - 20, eunbi.y + 20)
-
-    # 점프중일 경우 점프 이펙트와 날개 동작 그리기
-    if eunbi.yspd > 0:
-        jumpeffect.draw(eunbi.x, eunbi.y - 5)
-        wingimage.draw(eunbi.x, eunbi.y + 20)
-
-    # 그리는 중인 경우별 그리기 효과 표시
-    if nowdrawing == 1:
-
-        if eunbi.nowstate == LEFTDRAWING:
-            draweffect.draw(eunbi.x - 15, eunbi.y + 17)
-        elif eunbi.nowstate == RIGHTDRAWING:
-            draweffect.draw(eunbi.x + 15, eunbi.y + 17)
 
 # 스테이지 그리기
 
@@ -250,17 +228,20 @@ def enter():
     global imagebg, imagestagebg
     global eunbi
     global ground
-    global jumpeffect
-    global draweffect
     global drawnowstage
     global pauseimage
-    global wingimage
+
+    global jumpeffect, wingimage, quickmove, draweffect
+
 
     global skill1image, skill2image, skill3image
     global quickmove
     global ifstagedrawed
 
     global lifeenergybar, lifeimage, energyimage  # 바탕, 체력, 기력 이미지
+
+    # 현위치 지정
+    frame_main.nowplace = frame_main.PL_STAGE
 
     imagebg = load_image('gamemenuimg.png')  # 배경 이미지
     imagestagebg = load_image('stagebg.png')  # 스테이지 배경 이미지
@@ -271,19 +252,22 @@ def enter():
 
     # 오브젝트 생성 및 초기화
 
-    eunbi = gameobjects.Player()  # 별그림자 은비 (플레이어 오브젝트)
+    eunbi = object_player.Player()  # 별그림자 은비 (플레이어 오브젝트)
     eunbi.__init__()
 
     ground = gameobjects.Ground()  # 발판 오브젝트
     ground.__init__()
-    jumpeffect = gameobjects.Jumpeffect()  # 점프 효과 오브젝트
-    jumpeffect.__init__()
-    draweffect = gameobjects.Draweffect()  # 그리기 효과 오브젝트
-    draweffect.__init__()
     drawnowstage = gameobjects.Drawnowstage()  # 스테이지 표시 오브젝트
     drawnowstage.__init__()
-    wingimage = gameobjects.Wingimage()  # 날개 오브젝트
+
+    jumpeffect = object_player.Jumpeffect()  # 점프 효과 오브젝트
+    jumpeffect.__init__()
+    wingimage = object_player.Wingimage()  # 날개 오브젝트
     wingimage.__init__()
+    quickmove = object_player.Quickmove()  # 동작 효과 표시
+    quickmove.__init__()
+    draweffect = object_player.Draweffect()  # 그리기 효과 오브젝트
+    draweffect.__init__()
 
     skill1image = gameobjects.Skill1image() # 동작 실행 가능여부 표시
     skill1image.__init__()
@@ -291,9 +275,6 @@ def enter():
     skill2image.__init__()
     skill3image = gameobjects.Skill3image()  # 동작 실행 가능여부 표시
     skill3image.__init__()
-
-    quickmove = gameobjects.Quickmove() # 동작 효과 표시
-    quickmove.__init__()
 
     lifeenergybar = gameobjects.Lifeenergybar() # 체력, 기력 바탕 이미지
     lifeenergybar.__init__()
@@ -311,16 +292,14 @@ def enter():
 
 def exit():
     global imagebg, imagestagebg
-    global eunbi, wingimage
+    global eunbi
     global ground
-    global jumpeffect, draweffect
     global drawnowstage
     global skill1image, skill2image, skill3image
 
     del imagebg, imagestagebg
-    del eunbi, wingimage
+    del eunbi
     del ground
-    del jumpeffect, draweffect
     del drawnowstage
     del skill1image, skill2image, skill3image
 
@@ -341,49 +320,10 @@ def draw():
     skill2image.draw(558, 56)  # 기술 2 그리기
     skill3image.draw(644, 56)  # 기술 3 그리기
 
-    effectsdraw() # 효과 그리기
     stagedraw(nowgamestage, needtocollectstar) # 스테이지 그리기
     eunbi.draw()  # 은비 (플레이어) 그리기
 
     update_canvas()
-
-    pass
-
-# ----- 애니메이션 코드 -----
-
-def animationshow():
-
-    global nowdashl, nowdashr, skillxcooltime, nowskillxcooltime  # x키 - 도약중 여부, 도약 대기 시간
-
-    if eunbi.nowstate == STOP:  # 멈춰 있을 경우
-        eunbi.frame = 0  # 프레임 표시
-    elif eunbi.nowstate == LEFTDRAWING:  # 왼쪽 그리기중
-        eunbi.frame = 0  # 프레임 표시
-    elif eunbi.nowstate == RIGHTDRAWING:  # 오른쪽 그리기중
-        eunbi.frame = 1  # 프레임 표시
-    else:
-        eunbi.update()  # 프레임 표시
-
-    wingimage.update()  # 날개 이미지 업데이트
-
-    if nowdashr == 1:  # 오른쪽 도약 실행시
-        nowdashr = 2
-        skillxcooltime = nowskillxcooltime  # 대기시간 켜기
-        eunbi.x += dashamount  # 오른쪽으로 크게 이동
-
-    elif nowdashl == 1:  # 왼쪽 도약 실행시
-        nowdashl = 2
-        skillxcooltime = nowskillxcooltime  # 대기시간 켜기
-        eunbi.x -= dashamount  # 왼쪽으로 크게 이동
-
-    # 대기 시간 (쿨타임) 감소
-    if skillxcooltime > 0:
-        skillxcooltime -= 1
-        # 대기 시간이 일정 비율 이하로 줄어들면 잔상표시 지우기
-        if skillxcooltime <= nowskillxcooltime * (3 / 4):
-            nowdashr, nowdashl = 0, 0
-
-    delay(0.035)  # 프레임간 지연
 
     pass
 
@@ -392,17 +332,15 @@ def animationshow():
 def update():
 
     global mousepressed # 마우스 클릭한 여부
-    global keypressing # 키보드 입력중 여부
-    global keypressedleft, keypressedright # 왼쪽, 오른쪽 키 입력 여부
-    global keypressedspace, keypressedz, keypresseda # 스페이스바, z키, a키 입력여부
     global mouseclickedx, mouseclickedy  # 마우스 클릭한 x좌표, y좌표
-    global nowdrawing # 현재 그림 그리고 있는지 여부
     global skill1image, skill2image, skill3image # 기술 이미지
 
     global energynow  # 현재 기력
     global drawneedenergy # 그리는데 필요한 기력
     global groundaddenergy # 땅에서 점점 회복되는 기력
     global yjumpneedenergy # 날기(점프)에 필요한 기력
+
+    global eunbi # 은비(플레이어)
 
     # --- 기술 메뉴 표시 ---
 
@@ -413,108 +351,11 @@ def update():
     elif skillxcooltime > 0:
         skill1image.frame = 2  # 도약 대기시간중
 
-    # --- 이동 : 그림 그리고 있지 않을시에만 ---
-
-    if nowdrawing == 0:
-
-        # 현재 눌린 방향에 따라 동작 지정
-
-        if keypressedleft == 1:
-            if keypressedz == 0:
-                eunbi.nowstate = LEFT  # 캐릭터 방향
-                eunbi.movexy(-eunbi.xspd, 0)  # 플레이어 이동
-
-            elif keypressedz == 1:  # z키 눌렀을 경우
-                if energynow > 0:
-                    eunbi.nowstate = LEFTDRAWING
-                    eunbi.frame = 0  # 프레임 지정
-                    nowdrawing = 1  # 현재 그리고 있음
-
-                    # 기력 소모
-                    energynow -= drawneedenergy
-                    if energynow < 0:
-                        energynow = 0
-
-
-        elif keypressedright == 1:
-            if keypressedz == 0:
-                eunbi.nowstate = RIGHT  # 캐릭터 방향
-                eunbi.movexy(+eunbi.xspd, 0)  # 플레이어 이동
-
-            elif keypressedz == 1:  # z키 눌렀을 경우
-                if energynow > 0:
-                    eunbi.nowstate = RIGHTDRAWING
-                    eunbi.frame = 1  # 프레임 지정
-                    nowdrawing = 1  # 현재 그리고 있음
-
-                    # 기력 소모
-                    energynow -= drawneedenergy
-                    if energynow < 0:
-                        energynow = 0
-
-        else:
-            eunbi.frame = 0
-
-        # 스페이스바 눌렀을 경우 날기(점프)
-        if keypressedspace == 1:
-
-            # 위로 날기
-            eunbi.yspd = eunbi.yjumpamount
-            eunbi.y += 0.2
-            keypressedspace = 0
-
-            # 기력 소모
-            energynow -= yjumpneedenergy
-            if energynow < 0:
-                energynow = 0
-
-        # y 이동속도 하한 제한
-        if eunbi.yspd < -16:
-            eunbi.yspd = -16
-
-        # 플레이어는 yspd만큼 y축 방향으로 이동한다
-        eunbi.yspd -= 0.9
-        eunbi.y += eunbi.yspd
-
-        # 땅 위에 있을 경우
-        if eunbi.y < 130:
-            eunbi.y = 130
-            eunbi.yspd = 0
-
-            # 기력을 점차 회복한다
-            if energynow < energymax:
-                energynow += groundaddenergy
-                if energynow > energymax:
-                    energynow = energymax
-
-    # 그림 그리고 있을 경우 약간 그림 그리는 지연시간 뒤 풀림
-    elif nowdrawing == 1:
-
-        # 별 그리기 효과 표시
-
-        draweffect.update()
-
-        delay(0.02)  # 프레임간 지연
-        eunbi.yspd = 0
-        nowdrawing = 0
-
-    # 범위 내에 플레이어가 있게 하기 # 어째서인지 10px만큼 보정해줘야 한다
-
-    if eunbi.x < (0 + PLAYERXSIZE / 2 - 10):
-        eunbi.x = (0 + PLAYERXSIZE / 2 - 10)
-    elif eunbi.x > (680 - PLAYERXSIZE / 2 + 10):
-        eunbi.x = (680 - PLAYERXSIZE / 2 + 10)
-
-    if eunbi.y > (WINDOWYSIZE - PLAYERYSIZE - 10):
-        eunbi.y = (WINDOWYSIZE - PLAYERYSIZE - 10)
-        eunbi.yspd = -1
-
-    # 키보드를 누르고 있지 않으며 그림 그리고 있지 않을 경우 정지동작으로 표시
-    if keypressing == 0 and nowdrawing == 0:
-        eunbi.nowstate = STOP
-
-    animationshow() # 애니메이션 실행 코드
     stagecheck(nowgamestage, needtocollectstar) # 스테이지 정보 확인
+
+    # 현위치가 STAGE일 경우
+    if frame_main.nowplace == frame_main.PL_STAGE:
+        eunbi.update()
 
     # 캔버스 다시 그리기
     update_canvas()
@@ -525,6 +366,8 @@ def update():
 
 def handle_events():
     events = get_events()
+
+    global eunbi # 은비(플레이어)
 
     global mousepressed # 마우스 클릭한 여부
     global keypressing # 키보드 입력중 여부
@@ -546,110 +389,35 @@ def handle_events():
         if event.type == SDL_QUIT:
             game_framework.quit()
 
-        # 키보드 눌렀을 때
-        elif event.type == SDL_KEYDOWN:
+        # F1키를 눌렀다 뗄 경우 중단
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_F1):
+            game_framework.push_state(frame_pause)  # 일시정지 메뉴 열기
 
-            keypressing = 1  # 키 눌림
+        # F3 F4키는 테스트용으로, 각각 다음/이전 스테이지 이동키입니다
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_F2):
+            if nowgamestage > 11:  # 시작 스테이지가 아닐 경우
+                if int(nowgamestage % 10) == 1:  # 현재 1지역일 경우
+                    nowgamestage -= 10  # 이전 차원으로
+                    nowgamestage += 4  # 5지역으로
+                else:
+                    nowgamestage -= 1  # 이전 지역으로
 
-            if event.key == SDLK_SPACE:
-                keypressedspace = 1  # 스페이스바 눌림
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_F3):
+            if nowgamestage < 65:  # 6번째 차원의 5지역에 도달하지 않았을 경우
+                if int(nowgamestage % 10) == 5:  # 현재 5지역일 경우
+                    nowgamestage += 10  # 다음 차원으로
+                    nowgamestage -= 4  # 1지역으로
+                else:
+                    nowgamestage += 1  # 다음 지역으로
 
-            elif event.key == SDLK_LEFT:
-                keypressedleft = 1  # 오른쪽 키 눌림
+        # esc키를 누를 경우 메인 메뉴로 이동
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_ESCAPE):
+            game_framework.change_state(frame_main)
+            delay(DELAYTIME)
 
-                # 왼쪽 키를 누르고 있지 않을 때
-                if ifnowclickl == 0:
-                    ifnowclickl = 1 # 왼쪽 눌렸음
-                    nowdashtime = dashtime # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
-
-                # 왼쪽 키를 누르고 있을 때
-                elif ifnowclickl == 1:
-                    # 시간 안에 다시 같은 키를 누르고 그림 그리는 중이 아니고 대기 시간이 아니라면
-                    if keypressedz == 0 and nowdashtime > 0 and skillxcooltime == 0:
-                        nowdashtime = 0
-                        ifnowclickl = 0
-                        nowdashl = 1 # 왼쪽 도약 시작
-
-            elif event.key == SDLK_RIGHT:
-                keypressedright = 1  # 오른쪽 키 눌림
-
-                # 오른쪽 키를 누르고 있지 않을 때
-                if ifnowclickr == 0:
-                    ifnowclickr = 1 # 오른쪽 눌렸음
-                    nowdashtime = dashtime # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
-
-                # 오른쪽 키를 누르고 있을 때
-                elif ifnowclickr == 1:
-                    # 시간 안에 다시 같은 키를 누르고 그림 그리는 중이 아니고 대기 시간이 아니라면
-                    if keypressedz == 0 and nowdashtime > 0 and skillxcooltime == 0:
-                        nowdashtime = 0
-                        ifnowclickr = 0
-                        nowdashr = 1 # 오른쪽 도약 시작
-
-            # z키 눌렀을 때
-            elif event.key == SDLK_z:  # z키 눌림
-                keypressedz = 1
-
-            # a키 눌렀을 때
-            # elif event.key == SDLK_q: # a키 눌림
-            #    keypressedq = 1
-
-        # 키보드 뗐을 때
-        elif event.type == SDL_KEYUP:
-
-            keypressing = 0
-
-            if event.key == SDLK_SPACE:
-                keypressedspace = 0
-                wingimage.frame = 0
-
-            elif event.key == SDLK_z:
-                keypressedz = 0
-
-            # elif event.key == SDLK_a:
-            # keypresseda = 0
-
-            if event.key == SDLK_LEFT:
-                keypressedleft = 0
-
-            elif event.key == SDLK_RIGHT:
-                keypressedright = 0
-
-            # F1키를 누를 경우 중단
-            elif event.key == SDLK_F1:
-                game_framework.push_state(frame_pause) # 일시정지 메뉴 열기
-
-            # F3 F4키는 테스트용으로, 각각 다음/이전 스테이지 이동키입니다
-
-            elif event.key == SDLK_F3:
-                if nowgamestage > 11: # 시작 스테이지가 아닐 경우
-                    if int(nowgamestage % 10) == 1:  # 현재 1지역일 경우
-                        nowgamestage -= 10  # 이전 차원으로
-                        nowgamestage += 4  # 5지역으로
-                    else:
-                        nowgamestage -= 1  # 이전 지역으로
-
-            elif event.key == SDLK_F4:
-                if nowgamestage < 65: # 6번째 차원의 5지역에 도달하지 않았을 경우
-                    if int(nowgamestage % 10) == 5:  # 현재 5지역일 경우
-                        nowgamestage += 10  # 다음 차원으로
-                        nowgamestage -= 4  # 1지역으로
-                    else:
-                        nowgamestage += 1  # 다음 지역으로
-
-            # esc키를 누를 경우 메인 메뉴로 이동
-            elif event.key == SDLK_ESCAPE:
-                game_framework.change_state(frame_main)
-                delay(DELAYTIME)
-
-        # 마우스 눌렀을 때
-        elif event.type == SDL_MOUSEBUTTONDOWN:
-            # x, y 좌표 지정
-            mouseclickedx, mouseclickedy = event.x, WINDOWXSIZE - 1 - event.y
-
-        # 마우스 떼었을 때
-        elif event.type == SDL_MOUSEBUTTONUP:
-            mousepressed = 1
+        # 그 외의 경우 은비(플레이어) 캐릭터 컨트롤러 실행
+        else:
+            eunbi.handle_event(event)
 
     pass
 
@@ -673,7 +441,7 @@ def resume():
 
     pass
 
-# 직접 실행시켰을 경우
+# ------------ 직접 실행시켰을 경우 ------------
 
 def test_self():
     inputany = input("StarPainter.py 파일로 접속해주세요. 아무 키 눌러 종료")

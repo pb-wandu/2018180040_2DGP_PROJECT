@@ -1,6 +1,7 @@
 ### [별그림자 이야기] 게임 오브젝트 파일입니다
 
 # 프레임워크가 아닌 오브젝트 모음 파일입니다
+# 플레이어와 관련 없는 오브젝트들을 표시합니다
 
 # ------------ import 파일들 ------------
 
@@ -11,42 +12,6 @@ import frame_game         # 게임 메뉴 변수들 사용
 
 # ------------ 오브젝트 클래스들 ------------
 
-# 플레이어 오브젝트
-class Player:
-
-    # 초기화
-    def __init__(self):
-        self.image = load_image('characterimages.png')  # 캐릭터 이미지 (작업중)
-
-        self.x, self.y = frame_game.PLAYERXSTART, frame_game.PLAYERYSTART  # 플레이어 좌표
-        self.xspd = 8 # x축 이동속도
-        self.yspd = 0  # y축 이동속도
-        self.frame = 0  # 애니메이션 프레임
-        self.nowstate = frame_game.STOP  # 현재 플레이어 상태
-
-        # [별그림자 회랑]에서 강화할 수 있는 것
-        self.LPamount = 100  # 체력
-        self.EPamount = 100  # 기력
-        self.yjumpamount = 11  # 날기(점프)시 이동하는 정도
-        # self.cooltime_quickmove = UNSET # 도약 쿨타임
-        # self.cooltime_warp = UNSET # 순간이동 쿨타임
-
-    # x, y 각각 좌표만큼 이동
-    def movexy(self, x, y):
-        self.x += x
-        self.y += y
-
-    # 정보 갱신
-    def update(self):
-        self.frame = (self.frame + 1) % 2
-
-    # 그리기
-    def draw(self):
-        # 플레이어 그리기 (3픽셀은 임시 보정)
-        self.image.clip_draw(self.frame * 40, abs(self.nowstate) * 50, 33, 43, self.x, self.y + 20)
-
-    pass
-
 # 발판 오브젝트
 class Ground:
 
@@ -55,42 +20,6 @@ class Ground:
 
     def draw(self, x, y):
         self.image.draw(x, y)  # 발판 이미지 그리기
-
-    pass
-
-
-# 점프 효과 오브젝트
-class Jumpeffect:
-
-    def __init__(self):
-        self.image = load_image('jumpeffect.png')  # 날기(점프) 효과 이미지 (임시)
-
-    def draw(self, x, y):
-        self.image.draw(x, y)  # 날기(점프) 효과 이미지 그리기
-
-    pass
-
-# 별 그리기 효과 오브젝트
-class Draweffect:
-
-    def __init__(self):
-        self.image = load_image('starlight.png')  # 날기(점프) 효과 이미지 (임시)
-        self.frame = 0
-        self.dir = 1
-
-    def draw(self, x, y):
-        self.image.clip_draw(self.frame * 30, 0, 20, 20, x, y)
-
-    def update(self):
-        if self.dir == 1:
-            self.frame += 1
-            if self.frame == 4:
-                self.dir = 2
-
-        elif self.dir == 2:
-            self.frame -= 1
-            if self.frame == 1:
-                self.dir = 1
 
     pass
 
@@ -105,23 +34,6 @@ class Drawnowstage:
     def draw(self, n):
         self.imageworld.clip_draw( (int(n / 10) - 1) * 56, 0, 48, 48, 737, 434)
         self.imagestage.clip_draw(0, (int(n % 10) - 1) * 56, 198, 48, 869.5, 434)
-    pass
-
-# 날개 오브젝트
-
-class Wingimage:
-
-    def __init__(self):
-        self.image = load_image('wingimg.png')  # 날개 이미지
-        self.frame = 0  # 애니메이션 프레임
-
-    def draw(self, x, y):
-        self.image.clip_draw(0, self.frame * 24, 55, 14, x, y - self.frame * 4)  # 날기(점프) 효과 이미지 그리기
-
-    def update(self):
-        if self.frame < 2:
-            self.frame += 1
-
     pass
 
 # 동작 표시 오브젝트
@@ -159,20 +71,7 @@ class Skill3image:
 
     pass
 
-# 도약 효과
-
-class Quickmove:
-
-    def __init__(self):
-        self.image = load_image('quickmove.png')  # 도약 효과 이미지 그리기
-        self.frame = 0  # 애니메이션 프레임
-
-    def draw(self, x, y):
-        self.image.clip_draw(self.frame * 50, 0, 43, 43, x, y) # 도약 효과 그리기
-
-    pass
-
-# 도약 효과
+# 별
 
 class Star:
 

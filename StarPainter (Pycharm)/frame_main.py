@@ -23,12 +23,22 @@ imagebg = None # 배경 이미지
 mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
 mousepressed = 0 # 마우스 클릭한 여부
 
+PL_MAIN, PL_INFO, PL_STAGE, PL_PAUSE, PL_UPGRADE = 10, 11, 20, 21, 30
+
+nowplace = UNSET
+
 # ------------ 게임 프레임워크 동작들 ------------
 
 # 메뉴 진입
 def enter():
     global imagebg
+    global nowplace
+    
     imagebg = load_image('mainmenuimg.png') # 시작 메뉴 이미지
+
+    # 현위치 지정
+    nowplace = PL_MAIN
+
     pass
 
 # 메뉴 종료

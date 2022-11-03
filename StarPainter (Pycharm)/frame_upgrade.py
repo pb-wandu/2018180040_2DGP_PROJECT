@@ -16,6 +16,10 @@ upgradeimage = None
 def enter():
     global upgradeimage
     upgradeimage = load_image('upgradeimg.png')  # 일시정지 이미지
+
+    # 현위치 지정
+    frame_main.nowplace = frame_main.PL_UPGRADE
+
     pass
 
 # 메뉴 종료

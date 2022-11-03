@@ -16,6 +16,10 @@ pauseimage = None
 def enter():
     global pauseimage
     pauseimage = load_image('pauseimg.png')  # 일시정지 이미지
+
+    # 현위치 지정
+    frame_main.nowplace = frame_main.PL_PAUSE
+
     pass
 
 # 메뉴 종료
