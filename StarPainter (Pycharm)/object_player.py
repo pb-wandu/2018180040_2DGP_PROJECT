@@ -10,6 +10,8 @@ import game_framework     # 게임 프레임워크 임포트
 
 import frame_game         # 게임 메뉴 변수들 사용
 
+# ------------ 은비(플레이어) 관련 변수들 ------------
+
 YMINSPD = -14.0 # y속도 하한
 YMAXSPD = +14.0 # y속도 상한
 
@@ -60,10 +62,6 @@ class IDLE: # 플레이어 정지 동작
                     frame_game.ifnowclickr = 0
                     frame_game.nowdashr = 1  # 오른쪽 도약 시작
 
-        # z키 눌렀을 때
-        if event == EV_ZD:
-            frame_game.keypressedz = 1  # z키 눌림
-
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
             frame_game.keypressedleft = 0  # 왼쪽 키 뗌
@@ -74,11 +72,27 @@ class IDLE: # 플레이어 정지 동작
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
-            self.yspd += self.yjumpamount # 날기(점프)
+            # 날기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.yjumpneedenergy:
+                self.energynow -= self.yjumpneedenergy
+                self.yspd += self.yjumpamount # 날기(점프)
+            else:
+                self.energynow = 0
+
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
 
         # z키 눌렀을 때
         if event == EV_ZD:
-            frame_game.keypressedz = 1 # z키 누름
+            # 별 그리기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.drawneedenergy:
+                self.energynow -= self.drawneedenergy
+                frame_game.keypressedz = 1 # z키 누름
+
+        # z키 뗐을 때
+        if event == EV_ZU:
+            frame_game.keypressedz = 0  # z키 뗌
 
         pass
 
@@ -124,11 +138,17 @@ class IDLE: # 플레이어 정지 동작
             self.y = 130
             self.yspd = 0
 
+            # 날기 상태인 경우
+            if self.cur_state == FLY:
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE  # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
+
             # 기력을 점차 회복한다
-            if frame_game.energynow < frame_game.energymax:
-                frame_game.energynow += frame_game.groundaddenergy
-                if frame_game.energynow > frame_game.energymax:
-                    frame_game.energynow = frame_game.energymax
+            if self.energynow < self.energymax:
+                self.energynow += self.groundaddenergy
+                if self.energynow > self.energymax:
+                    self.energynow = self.energymax
 
         # 은비(플레이어) 이동 범위 제한
 
@@ -199,10 +219,6 @@ class WALK: # 플레이어 이동 동작
                     frame_game.ifnowclickr = 0
                     frame_game.nowdashr = 1  # 오른쪽 도약 시작
 
-        # z키 눌렀을 때
-        if event == EV_ZD:
-            frame_game.keypressedz = 1 # z키 눌림
-
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
             frame_game.keypressedleft = 0 # 왼쪽 키 뗌
@@ -213,11 +229,27 @@ class WALK: # 플레이어 이동 동작
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
-            self.yspd += self.yjumpamount # 날기(점프)
+            # 날기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.yjumpneedenergy:
+                self.energynow -= self.yjumpneedenergy
+                self.yspd += self.yjumpamount # 날기(점프)
+            else:
+                self.energynow = 0
+
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
 
         # z키 눌렀을 때
         if event == EV_ZD:
-            frame_game.keypressedz = 1 # z키 누름
+            # 별 그리기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.drawneedenergy:
+                self.energynow -= self.drawneedenergy
+                frame_game.keypressedz = 1 # z키 누름
+
+        # z키 뗐을 때
+        if event == EV_ZU:
+            frame_game.keypressedz = 0  # z키 뗌
 
         # 은비(플레이어) 이동 범위 제한
 
@@ -275,12 +307,17 @@ class WALK: # 플레이어 이동 동작
             self.y = 130
             self.yspd = 0
 
-            # 기력을 점차 회복한다
-            if frame_game.energynow < frame_game.energymax:
-                frame_game.energynow += frame_game.groundaddenergy
-                if frame_game.energynow > frame_game.energymax:
-                    frame_game.energynow = frame_game.energymax
+            # 날기 상태인 경우
+            if self.cur_state == FLY:
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE  # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
 
+            # 기력을 점차 회복한다
+            if self.energynow < self.energymax:
+                self.energynow += self.groundaddenergy
+                if self.energynow > self.energymax:
+                    self.energynow = self.energymax
         # 은비(플레이어) 이동 범위 제한
 
         if self.x < 0 + PLAYERXSIZE / 2:
@@ -350,10 +387,6 @@ class FLY: # 플레이어 날기(점프) 동작
                     frame_game.ifnowclickr = 0
                     frame_game.nowdashr = 1  # 오른쪽 도약 시작
 
-        # z키 눌렀을 때
-        if event == EV_ZD:
-            frame_game.keypressedz = 1 # z키 눌림
-
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
             frame_game.keypressedleft = 0 # 왼쪽 키 뗌
@@ -364,11 +397,27 @@ class FLY: # 플레이어 날기(점프) 동작
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
-            self.yspd += self.yjumpamount # 날기(점프)
+            # 날기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.yjumpneedenergy:
+                self.energynow -= self.yjumpneedenergy
+                self.yspd += self.yjumpamount # 날기(점프)
+            else:
+                self.energynow = 0
+
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
 
         # z키 눌렀을 때
         if event == EV_ZD:
-            frame_game.keypressedz = 1 # z키 누름
+            # 별 그리기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.drawneedenergy:
+                self.energynow -= self.drawneedenergy
+                frame_game.keypressedz = 1 # z키 누름
+
+        # z키 뗐을 때
+        if event == EV_ZU:
+            frame_game.keypressedz = 0  # z키 뗌
 
         pass
 
@@ -414,11 +463,17 @@ class FLY: # 플레이어 날기(점프) 동작
             self.y = 130
             self.yspd = 0
 
+            # 날기 상태인 경우
+            if self.cur_state == FLY:
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE  # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
+
             # 기력을 점차 회복한다
-            if frame_game.energynow < frame_game.energymax:
-                frame_game.energynow += frame_game.groundaddenergy
-                if frame_game.energynow > frame_game.energymax:
-                    frame_game.energynow = frame_game.energymax
+            if self.energynow < self.energymax:
+                self.energynow += self.groundaddenergy
+                if self.energynow > self.energymax:
+                    self.energynow = self.energymax
 
         # 은비(플레이어) 이동 범위 제한
 
@@ -488,10 +543,6 @@ class DRAW: # 플레이어 별 그리기 동작
                     frame_game.ifnowclickr = 0
                     frame_game.nowdashr = 1  # 오른쪽 도약 시작
 
-        # z키 눌렀을 때
-        if event == EV_ZD:
-            frame_game.keypressedz = 1 # z키 눌림
-
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
             frame_game.keypressedleft = 0 # 왼쪽 키 뗌
@@ -502,11 +553,27 @@ class DRAW: # 플레이어 별 그리기 동작
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
-            self.yspd += self.yjumpamount # 날기(점프)
+            # 날기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.yjumpneedenergy:
+                self.energynow -= self.yjumpneedenergy
+                self.yspd += self.yjumpamount # 날기(점프)
+            else:
+                self.energynow = 0
+
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
 
         # z키 눌렀을 때
         if event == EV_ZD:
-            frame_game.keypressedz = 1 # z키 누름
+            # 별 그리기에 필요한 기력보다 현재 기력이 많을 경우
+            if self.energynow >= self.drawneedenergy:
+                self.energynow -= self.drawneedenergy
+                frame_game.keypressedz = 1 # z키 누름
+
+        # z키 뗐을 때
+        if event == EV_ZU:
+            frame_game.keypressedz = 0  # z키 뗌
 
         pass
 
@@ -544,6 +611,18 @@ class DRAW: # 플레이어 별 그리기 동작
             frame_game.draweffect.update()
             self.yspd = 0
 
+            # [별 그리기]에 필요한 기력보다 많이 있으면 [별 그리기]를 수행하고 아니라면 중단한다.
+            if self.energynow >= self.drawneedenergy:
+                self.energynow -= self.drawneedenergy
+            else:
+                frame_game.nowdrawing = 0
+                self.energynow = 0
+
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
+
+
         # y 이동속도 상한, 하한 제한
         if self.yspd < YMINSPD: self.yspd = YMINSPD
         if self.yspd > YMAXSPD: self.yspd = YMAXSPD
@@ -553,11 +632,17 @@ class DRAW: # 플레이어 별 그리기 동작
             self.y = 130
             self.yspd = 0
 
+            # 날기 상태인 경우
+            if self.cur_state == FLY:
+                self.cur_state.exit(self)  # 현재 상태의 exit 동작을 수행한다.
+                self.cur_state = IDLE  # IDLE 상태로 강제 이동
+                self.cur_state.enter(self, None)  # 다음 상태 enter 동작 수행
+
             # 기력을 점차 회복한다
-            if frame_game.energynow < frame_game.energymax:
-                frame_game.energynow += frame_game.groundaddenergy
-                if frame_game.energynow > frame_game.energymax:
-                    frame_game.energynow = frame_game.energymax
+            if self.energynow < self.energymax:
+                self.energynow += self.groundaddenergy
+                if self.energynow > self.energymax:
+                    self.energynow = self.energymax
 
         # 은비(플레이어) 이동 범위 제한
 
@@ -649,11 +734,20 @@ class Player:
         self.cooltime_quickmove = frame_game.UNSET  # 도약 쿨타임
         self.cooltime_warp = frame_game.UNSET  # 순간이동 쿨타임
 
-        self.nowstate = frame_game.STOP
+        self.nowstate = frame_game.STOP # 현재 상태
+
+        self.lifemax, self.energymax = 100, 100  # 시작시엔 최대 체력 100으로 시작
+        self.lifenow, self.energynow = 100, 100  # 시작시엔 최대 기력 100으로 시작
+
+        # (// 기력 관련 변수는 테스트하면서 값을 조정합니다)
+        self.groundaddenergy = 2.4  # 땅에서 점점 회복되는 기력
+        self.drawneedenergy = 3  # 그리는데 필요한 기력
+        self.yjumpneedenergy = 7.5  # 날기(점프)에 필요한 기력
 
         self.q = [] # 이벤트 큐 초기화
         self.cur_state = IDLE # 현재 상태를 정지 상태로 지정
         self.cur_state.enter(self, None) # 초기 상태(IDLE) enter 동작 수행
+
 
     # 정보 갱신
     def update(self):
@@ -696,9 +790,13 @@ def effectsdraw(self):
         frame_game.quickmove.frame = 1
         frame_game.quickmove.draw(self.x - 20, self.y + 20)
 
-    # 점프중일 경우 점프 이펙트와 날개 동작 그리기
+    # 점프중일 경우 점프 이펙트 그리기
     if self.yspd > 0:
         frame_game.jumpeffect.draw(self.x, self.y - 5)
+
+    # 현재 FLY 상태인 경우 날개 그리기
+    if self.cur_state == FLY:
+        frame_game.wingimage.update()
         frame_game.wingimage.draw(self.x, self.y + 20)
 
     # 그리는 중인 경우별 그리기 효과 표시
@@ -710,8 +808,6 @@ def effectsdraw(self):
 
 
 def animationshow(self):
-
-    Wingimage.update(self)  # 날개 이미지 업데이트
 
     if frame_game.nowdashr == 1:  # 오른쪽 도약 실행시
         frame_game.nowdashr = 2
@@ -768,13 +864,26 @@ class Wingimage:
     def __init__(self):
         self.image = load_image('wingimg.png')  # 날개 이미지
         self.frame = 0  # 애니메이션 프레임
+        self.dir = 0 # 날개 이동 방향
 
     def draw(self, x, y):
         self.image.clip_draw(0, self.frame * 24, 55, 14, x, y - self.frame * 4)  # 날기(점프) 효과 이미지 그리기
 
     def update(self):
-        if self.frame < 2:
-            self.frame += 1
+
+        if self.dir == 0:
+            if self.frame < 2:
+                self.frame += 1
+            elif self.frame == 2:
+                self.dir = 1
+
+        elif self.dir == 1:
+            if self.frame > 0:
+                self.frame -= 1
+            elif self.frame == 0:
+                self.dir = 0
+
+
 
     pass
 

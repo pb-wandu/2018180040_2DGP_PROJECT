@@ -103,18 +103,14 @@ starplacesset = [ # 별을 표시할 위치
 
 stardrawed = [False, False, False, False, False, False, False, False, False, False] # 해당 위치에 별이 그려졌는지 확인
 
-lifemax, energymax = 100, 100 # 시작시엔 최대 체력 100으로 시작
-lifenow, energynow = 100, 100 # 시작시엔 최대 기력 100으로 시작
+
 
 nowlifelength = 0  # 전체 제력 대비 현재 체력
 nowenergylength = 0  # 전체 기력 대비 현재 기력
 lifeimageadjust = 0 # 왼쪽으로 정렬 이동값
 energyimageadjust = 0 # 왼쪽으로 정렬 이동값
 
-# (// 기력 관련 변수는 테스트하면서 값을 조정합니다)
-groundaddenergy = 2.4 # 땅에서 점점 회복되는 기력
-drawneedenergy = 3 # 그리는데 필요한 기력
-yjumpneedenergy = 7.5  # 날기(점프)에 필요한 기력
+
 
 def stagecheck(stage, arr):
     global nowcollectedstar # 현재 모은 별
@@ -125,7 +121,6 @@ def stagecheck(stage, arr):
     global ifstagedrawed  # 스테이지 그려짐 여부
 
     global nowlifelength, nowenergylength, lifeimageadjust, energyimageadjust
-    global lifemax, lifenow, energymax, energynow
 
     worldnow = int(stage / 10)  # 현재 차원
     placenow = stage % 10  # 현재 장소
@@ -134,8 +129,8 @@ def stagecheck(stage, arr):
 
     # 체력, 기력 정보 관리
 
-    nowlifelength = 120 * lifenow / lifemax # 전체 제력 대비 현재 체력
-    nowenergylength = 120 * energynow / energymax # 전체 기력 대비 현재 기력
+    nowlifelength = 120 * eunbi.lifenow / eunbi.lifemax # 전체 제력 대비 현재 체력
+    nowenergylength = 120 * eunbi.energynow / eunbi.energymax # 전체 기력 대비 현재 기력
     lifeimageadjust = (120 - nowlifelength) / 2 # 왼쪽으로 정렬 이동값
     energyimageadjust = (120 - nowenergylength) / 2 # 왼쪽으로 정렬 이동값
 
@@ -158,9 +153,9 @@ def stagecheck(stage, arr):
 
         # 만약 별이 그려지지 않은 경우
         if not stardrawed[i] and nowdrawing == 1:
-            # 별을 그리는 좌표가 목표 지점의 안에 있을 때 - 10px 별 크기 보정 적용
-            if x - (STARSIZE / 2 - 10) <= drawx <= (x + STARSIZE / 2 + 10)\
-                    and (y - STARSIZE / 2 - 10) <= drawy <= (y + STARSIZE / 2 + 10):
+            # 별을 그리는 좌표가 목표 지점의 안에 있을 때 (15px 별 범위 보정 적용)
+            if x - (STARSIZE / 2 - 15) <= drawx <= (x + STARSIZE / 2 + 15)\
+                    and (y - STARSIZE / 2 - 15) <= drawy <= (y + STARSIZE / 2 + 15):
                 stardrawed[i] = True
                 starplaces[i].ifdraw = True  # 별을 그렸음
                 nowdrawing = 0
@@ -335,10 +330,7 @@ def update():
     global mouseclickedx, mouseclickedy  # 마우스 클릭한 x좌표, y좌표
     global skill1image, skill2image, skill3image # 기술 이미지
 
-    global energynow  # 현재 기력
-    global drawneedenergy # 그리는데 필요한 기력
-    global groundaddenergy # 땅에서 점점 회복되는 기력
-    global yjumpneedenergy # 날기(점프)에 필요한 기력
+
 
     global eunbi # 은비(플레이어)
 

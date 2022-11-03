@@ -7,6 +7,7 @@ import game_framework     # 게임 프레임워크 임포트
 
 import frame_game         # 게임 메뉴 전환시 호출
 import frame_main         # 프로그램 전체에 해당되는 값 사용
+import object_player      # 플레이어 관련 변수 사용
 
 upgradeimage = None
 
@@ -67,7 +68,7 @@ def handle_events():
                 frame_game.ifstagedrawed = 0 # 스테이지 그려짐 여부 초기화
 
                 # 최대 체력과 기력으로 스테이지 시작
-                frame_game.lifenow, frame_game.energynow = frame_game.lifemax, frame_game.energymax
+                object_player.lifenow, object_player.energynow = object_player.lifemax, object_player.energymax
 
                 # 키 입력 초기화
                 frame_game.keypressedleft = 0
