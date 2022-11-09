@@ -6,9 +6,10 @@
 # ------------ import 파일들 ------------
 
 from pico2d import *      # pico2d 라이브러리 import
-import game_framework     # 게임 프레임워크 임포트
+import game_framework     # 게임 프레임워크 import
 
 import frame_game         # 게임 메뉴 변수들 사용
+import frame_main         # 메인 메뉴 변수들 사용
 
 # ------------ 은비(플레이어) 관련 변수들 ------------
 
@@ -709,6 +710,7 @@ next_state = {
 
 class Player:
     player_keypressed = 0
+    image = None
 
     # 캐릭터 컨트롤러
     def handle_event(self, event):
@@ -719,7 +721,8 @@ class Player:
 
     # 초기화
     def __init__(self):
-        self.image = load_image('characterimages.png')  # 캐릭터 이미지
+        if Player.image is None:
+            Player.image = load_image('characterimages.png')  # 캐릭터 이미지
 
         self.x, self.y = PLAYERXSTART, PLAYERYSTART  # 플레이어 좌표
 
@@ -797,7 +800,12 @@ def effectsdraw(self):
     # 현재 FLY 상태인 경우 날개 그리기
     if self.cur_state == FLY:
         frame_game.wingimage.update()
-        frame_game.wingimage.draw(self.x, self.y + 20)
+        if self.nowstate == frame_game.LEFT:
+            frame_game.wingimage.draw(self.x, self.y + 20, frame_game.LEFT)
+        elif self.nowstate == frame_game.RIGHT:
+            frame_game.wingimage.draw(self.x, self.y + 20, frame_game.RIGHT)
+        else:
+            frame_game.wingimage.draw(self.x, self.y + 20, frame_game.STOP)
 
     # 그리는 중인 경우별 그리기 효과 표시
     if frame_game.nowdrawing == 1:
@@ -805,7 +813,6 @@ def effectsdraw(self):
             frame_game.draweffect.draw(self.x - 15, self.y + 17)
         elif self.nowstate == frame_game.RIGHTDRAWING:
             frame_game.draweffect.draw(self.x + 15, self.y + 17)
-
 
 def animationshow(self):
 
@@ -866,8 +873,25 @@ class Wingimage:
         self.frame = 0  # 애니메이션 프레임
         self.dir = 0 # 날개 이동 방향
 
-    def draw(self, x, y):
-        self.image.clip_draw(0, self.frame * 24, 55, 14, x, y - self.frame * 4)  # 날기(점프) 효과 이미지 그리기
+    def draw(self, x, y, drdir):
+
+        rad, flip = frame_main.UNSET, frame_main.UNSET
+
+        # 이동 상태에 따라 날개 기울여 보이게 하기
+
+        if drdir == 0:
+            rad = 0 # 기울이는 각도
+            flip = 'h' # 뒤집기 (좌우반전)
+        elif drdir == 1:
+            rad = +0.2 # 기울이는 각도
+            flip = 'h' # 뒤집기 (좌우반전)
+        elif drdir == 2:
+            rad = -0.2 # 기울이는 각도
+            flip = 'h' # 뒤집기 (좌우반전)
+
+        # 날기(점프) 효과 이미지 그리기
+        self.image.clip_composite_draw(0, self.frame * 24, 55, 14, rad, flip, frame_game.eunbi.x, frame_game.eunbi.y + 20, 55, 14)
+
 
     def update(self):
 

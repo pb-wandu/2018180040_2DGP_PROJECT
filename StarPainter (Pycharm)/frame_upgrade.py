@@ -3,11 +3,13 @@
 # ------------ import 파일들 ------------
 
 from pico2d import *      # pico2d 라이브러리 import
-import game_framework     # 게임 프레임워크 임포트
+import game_framework     # 게임 프레임워크 import
 
+import frame_main         # main의 변수들 import
 import frame_game         # 게임 메뉴 전환시 호출
-import frame_main         # 프로그램 전체에 해당되는 값 사용
 import object_player      # 플레이어 관련 변수 사용
+
+import game_world         # 게임 월드 및 스테이지 관련 변수, 함수
 
 upgradeimage = None
 
@@ -58,24 +60,11 @@ def handle_events():
 
             if event.key == SDLK_RETURN or event.key == SDLK_ESCAPE:
 
-                # 다음 스테이지(또는 다음 차원)로 이동
-                frame_game.nowgamestage += 1 # 다음 스테이지로 이동
-                if int(frame_game.nowgamestage % 10) == 5:  # 현재 5지역일 경우
-                    frame_game.nowgamestage += 10  # 다음 차원으로
-                    frame_game.nowgamestage -= 4  # 1지역으로
+                # 스테이지 재시작
+                frame_game.stagerestart = 1
 
-                frame_game.nowcollectedstar = 0 # 모은 별 개수 초기화
-                frame_game.ifstagedrawed = 0 # 스테이지 그려짐 여부 초기화
-
-                # 최대 체력과 기력으로 스테이지 시작
-                object_player.lifenow, object_player.energynow = object_player.lifemax, object_player.energymax
-
-                # 키 입력 초기화
-                frame_game.keypressedleft = 0
-                frame_game.keypressedright = 0
-                frame_game.keypressedz = 0
-
-                game_framework.change_state(frame_game) # 게임 메뉴로 이동
+                # 게임 메뉴로 이동
+                game_framework.change_state(frame_game)
                 delay(frame_main.DELAYTIME)
 
 # 직접 실행시켰을 경우
