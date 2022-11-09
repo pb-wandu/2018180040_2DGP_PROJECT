@@ -46,9 +46,7 @@ class Skill1image:
 
     def __init__(self):
         self.frame = 0  # 애니메이션 프레임
-        if Skill1image.image is None:
-            Skill1image.image = load_image('skill1show.png')  # 기술 이미지 그리기
-
+        Skill1image.image = load_image('skill1show.png')  # 기술 이미지 그리기
 
     def draw(self, x, y):
         self.image.clip_draw(self.frame * 82, 0, 75, 103, x, y) # 기술 이미지 그리기
@@ -60,11 +58,10 @@ class Skill2image:
 
     def __init__(self):
         self.frame = 0  # 애니메이션 프레임
-        if Skill2image.image is None:
-            Skill2image.image = load_image('skill2show.png')  # 기술 이미지 그리기
+        Skill2image.image = load_image('skill2show.png')  # 기술 이미지 그리기
 
     def draw(self, x, y):
-        self.image.clip_draw(0, self.frame * 82, 75, 103, x, y) # 기술 이미지 그리기
+        self.image.clip_draw(self.frame * 82, 0, 75, 103, x, y) # 기술 이미지 그리기
 
     pass
 
@@ -73,11 +70,10 @@ class Skill3image:
 
     def __init__(self):
         self.frame = 0  # 애니메이션 프레임
-        if Skill3image.image is None:
-            Skill3image.image = load_image('skill3show.png')  # 기술 이미지 그리기
+        Skill3image.image = load_image('skill3show.png')  # 기술 이미지 그리기
 
     def draw(self, x, y):
-        self.image.clip_draw(0, self.frame * 82, 75, 103, x, y)  # 기술 이미지 그리기
+        self.image.clip_draw(self.frame * 82, 0, 75, 103, x, y)  # 기술 이미지 그리기
 
     pass
 
@@ -98,7 +94,6 @@ class Star:
         self.image.draw(x, y) # 별 이미지 그리기
 
     pass
-
 
 # 체력 기력 표시칸
 

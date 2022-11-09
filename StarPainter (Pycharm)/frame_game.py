@@ -29,6 +29,8 @@ skill1image, skill2image, skill3image = None, None, None # 기술 사용 가능�
 
 jumpeffect, wingimage, quickmove, draweffect = None, None, None, None # 은비(플레이어) 관련 이미지
 
+skill2usingimg = None # q (순간이동) 사용중 이미지
+
 keypressing = 0  # 키보드 입력중 여부
 mousepressed = 0 # 마우스 클릭한 여부
 
@@ -38,8 +40,9 @@ nowcollectedstar, ifstagedrawed = 0, 0
 
 # 키 각각 입력 여부
 keypressedleft, keypressedright, keypressedup, keypresseddown = 0, 0, 0, 0
-keypressedz, keypresseda = 0, 0
+keypressedz, keypressedq, keypressedw = 0, 0, 0
 
+mousex, mousey = UNSET, UNSET # 마우스 x좌표, y좌표
 mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
 
 playersavex, playersavey = UNSET, UNSET # 플레이어 좌표 저장
@@ -58,17 +61,32 @@ STOP, LEFT, RIGHT, LEFTDRAWING, RIGHTDRAWING = 0, 1, 2, -3, 3
 
 nowdrawing = 0  # 현재 그림 그리고 있는지 여부
 
-# 도약 판정 변수 (별그림자 회랑 강화 x)
+# 동작 잠그기, 잠금 해제
+skillmovelocked = 0
+skillqlocked = 0
+skillwlocked = 0
+
+# 도약 판정 변수
 ifnowclickr = 0 # 지금 오른쪽 눌렀는가 변수
 ifnowclickl = 0 # 지금 왼쪽 눌렀는가 변수
 nowdashtime = 0 # 0이 되기 전에 같은 키를 다시 누르면 도약을 수행
-skillxcooltime = 0  # 도약 대기시간
 nowdashl, nowdashr = 0, 0  # 해당 방향으로 도약 여부
 
-# 도약 판정 변수 (별그림자 회랑 강화 o)
-dashtime = 10 # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
-nowskillxcooltime = 60 # 현재 도약 대기시간
+nowskillmovecooltime = 0  # 도약 대기시간
+nowskillqcooltime = 0  # 순간이동 대기시간
+
+nowqstate = 0 # q (순간이동) 기술 사용중 여부
+
+# 별그림자 회랑에서 강화 가능한 값들 (// 수시로 수정하며 확인합니다)
+
+dashtime = 40 # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
+skillmovecooltime = 60 # 현재 도약 대기시간
 dashamount = 50 # 도약 크기
+
+skillqcooltime = 150  # 순간이동 대기시간
+
+skillmoveneedenergy = 50 # 도약 사용시 기력 요구치
+skillqneedenergypercent = 40 # 순간이동 사용시 기력 요구 퍼센트
 
 # ------------ 스테이지 관련 변수, 관리 함수 ------------
 
@@ -186,7 +204,9 @@ def stagedraw(stage, arr):
 
     # 글자 표시
     stagefont = load_font('WLR-1_Yeongyeon_v1_3.TTF', 16)
-    stagefont.draw(5, frame_main.WINDOWYSIZE - 21, '현재 스테이지 : ###', (0, 0, 120))
+    stagetext = '현재 위치 : 차원 ' + str(worldnow) + ' - 구역 ' + str(placenow)
+
+    stagefont.draw(5, frame_main.WINDOWYSIZE - 21, stagetext, (0, 0, 80))
 
     # starplacesset에서 현재 스테이지 좌표가 있는 위치
     starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
@@ -217,6 +237,8 @@ def enter():
 
     global jumpeffect, wingimage, quickmove, draweffect
 
+    global skill2usingimg
+
     # 현위치 지정
     frame_main.nowplace = frame_main.PL_STAGE
 
@@ -226,6 +248,8 @@ def enter():
 
     imagebg = load_image('gamemenuimg.png')  # 배경 이미지
     imagestagebg = load_image('stagebg.png')  # 스테이지 배경 이미지
+
+    skill2usingimg = load_image('skill2usingimg.png') # q (순간이동) 사용중 이미지
 
     ground = gameobjects.Ground()  # 발판 오브젝트
     drawnowstage = gameobjects.Drawnowstage()  # 스테이지 표시 오브젝트
@@ -276,6 +300,9 @@ def enter():
 
 # 화면 그리기
 def draw():
+    global skill2usingimg
+    global skillmovelocked, skillqlocked, skillwlocked
+
     clear_canvas() # 화면 초기화
 
     # 게임 월드에 있는 오브젝트에 한하여
@@ -306,9 +333,9 @@ def draw():
         elif game_object == skill1image:
             game_object.draw(472, 56)  # 기술 1 그리기
         elif game_object == skill2image:
-            game_object.draw(558, 56)  # 기술 2 그리기
+            game_object.draw(558, 58)  # 기술 2 그리기
         elif game_object == skill3image:
-            game_object.draw(644, 56)  # 기술 3 그리기
+            game_object.draw(644, 58)  # 기술 3 그리기
 
         elif game_object == game_world.lifeenergybar:
             game_object.draw(150, 82) # 체력 표시 자리
@@ -319,10 +346,31 @@ def draw():
         elif game_object == game_world.energyimage:
             game_object.draw(150 - energyimageadjust, 38, int(nowenergylength))
 
+    # 잠근 기술 위에 잠김 이미지 표시하기
+
+    lockimage = load_image('lockimage.png')  # 배경 이미지
+    if skillmovelocked == 1:
+        lockimage.draw(471, 72)  # 기술 1 그리기
+    if skillqlocked == 1:
+        lockimage.draw(557, 72)  # 기술 2 그리기
+    if skillwlocked == 1:
+        lockimage.draw(643, 72)  # 기술 3 그리기
+
+    # q 기술(순간이동) 사용중일 때는 커서 숨기고 q 기술 이미지 표시하기
+
+    if nowqstate == 1:
+        hide_cursor()
+        skill2usingimg.draw(mousex, mousey)
+    else:
+        show_cursor()
+
     # 스테이지 그리기
+
     stagedraw(nowgamestage, needtocollectstar)
 
-    update_canvas() # 화면 업데이트
+    # 화면 업데이트
+
+    update_canvas()
 
     pass
 
@@ -334,13 +382,26 @@ def update():
     global mouseclickedx, mouseclickedy  # 마우스 클릭한 x좌표, y좌표
     global skill1image, skill2image, skill3image # 기술 이미지
 
-    global keypressedleft, keypressedright, keypressedz
+    global keypressedleft, keypressedright, keypressedz, keypressedq, keypressedw
 
     global eunbi # 은비(플레이어)
 
     global stagerestart # 스테이지 재시작 여부
 
     global nowcollectedstar, ifstagedrawed, nowgamestage
+    global nowdashr, nowdashl
+
+    global nowdrawing # z키 (별 그리기) 사용중 여부
+    global nowqstate # q키 (순간이동) 사용중 여부
+
+    global skillmovecooltime, nowskillmovecooltime
+    global skillqcooltime, nowskillqcooltime
+
+    global skillmoveneedenergy # 도약 사용시 기력 요구치
+    global skillqneedenergypercent # 순간이동 사용시 기력 요구 퍼센트
+
+    # 동작 잠그기, 잠금 해제
+    global skillmovelocked, skillqlocked, skillwlocked
 
     # 스테이지 재시작시
     if stagerestart == 1:
@@ -360,7 +421,7 @@ def update():
         # 키 입력 초기화
         keypressedleft = 0
         keypressedright = 0
-        keypressedz = 0
+        keypressedz, keypressedq, keypressedw = 0, 0, 0
 
         # 재시작 재설정 완료
         stagerestart = 0
@@ -368,12 +429,72 @@ def update():
 
     # --- 기술 메뉴 표시 ---
 
-    if skillxcooltime == 0:
+    if nowskillmovecooltime == 0:
         skill1image.frame = 0  # 도약 실행 가능
     elif nowdashl == 2 or nowdashr == 2:
         skill1image.frame = 1  # 도약 실행중
-    elif skillxcooltime > 0:
+    elif nowskillmovecooltime > 0:
         skill1image.frame = 2  # 도약 대기시간중
+
+    if nowqstate == 0:
+        skill2image.frame = 0  # 순간이동 실행 가능
+    elif nowqstate == 1:
+        skill2image.frame = 1  # 순간이동 실행중
+    elif nowqstate == 2 or nowqstate == 3:
+        skill2image.frame = 2  # 순간이동 대기시간중
+
+    # 도약 동작
+    if nowdashr == 1:  # 오른쪽 도약 실행시
+        if skillmovelocked == 0:
+            nowdashr = 2
+            nowskillmovecooltime = skillmovecooltime  # 대기시간 켜기
+            self.x += dashamount  # 오른쪽으로 크게 이동
+        else:
+            nowdashl = 0
+
+    elif nowdashl == 1:  # 왼쪽 도약 실행시
+        if skillmovelocked == 0:
+            nowdashl = 2
+            nowskillmovecooltime = skillmovecooltime  # 대기시간 켜기
+            self.x -= dashamount  # 왼쪽으로 크게 이동
+        else:
+            nowdashl = 0
+
+    if keypressedz == 1:
+        nowdrawing = 1
+        draweffect.update()
+
+    # 날기 동작 대기 시간 (쿨타임) 감소
+    if nowskillmovecooltime > 0:
+        nowskillmovecooltime -= 1
+        # 대기 시간이 일정 비율 이하로 줄어들면 잔상표시 지우기
+        if nowskillmovecooltime <= skillmovecooltime * (3 / 4):
+            nowdashr, nowdashl = 0, 0
+
+    # 순간이동
+
+    if keypressedq == 1:
+        if nowqstate == 0 and skillqlocked == 0:
+            nowqstate = 1
+
+    # 순간이동 (쿨타임) 감소
+
+    if nowqstate == 2:
+        nowskillqcooltime = skillqcooltime
+        nowqstate = 3
+
+    elif nowqstate == 3:
+
+        nowskillqcooltime -= 1
+
+        if nowskillqcooltime <= 0:
+            nowskillqcooltime = 0
+            nowqstate = 0
+
+    # 반짝임
+    if keypressedw == 1:
+        # // 추가 예정
+        pass
 
     # 스테이지 정보 확인
     stagecheckresult = stagecheck(nowgamestage, needtocollectstar)
@@ -406,14 +527,22 @@ def handle_events():
     global mousepressed # 마우스 클릭한 여부
     global keypressing # 키보드 입력중 여부
     global keypressedleft, keypressedright # 왼쪽, 오른쪽 키 입력 여부
-    global keypressedz, keypresseda # 스페이스바, z키, a키 입력여부
-    global mouseclickedx, mouseclickedy  # 마우스 클릭한 x좌표, y좌표
+    global keypressedz, keypressedq, keypressedw # 기술 키 입력여부
+    global mousex, mousey, mouseclickedx, mouseclickedy  # 마우스 x좌표, y좌표
 
     global playersavex, playersavey # 플레이어 좌표 저장
 
     global ifnowclickl, ifnowclickr, nowdashtime, dashtime # 도약 판정 변수
-    global skillxcooltime # 도약 대기시간 (쿨타임)
+    global skillmovecooltime # 도약 대기시간 (쿨타임)
     global nowdashl, nowdashr # 해당 방향으로 도약 여부
+
+    global nowqstate # 현재 q (순간이동) 수행중 여부
+    global skillqcooltime  # 도약 대기시간 (쿨타임)
+    global nowskillqcooltime # 현재 도약 대기시간 (쿨타임)
+
+    global nowgamestage
+
+    global skillmovelocked, skillqlocked, skillwlocked
 
     for event in events:
 
@@ -425,7 +554,15 @@ def handle_events():
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_F1):
             game_framework.push_state(frame_pause)  # 일시정지 메뉴 열기
 
-        # F3 F4키는 테스트용으로, 각각 다음/이전 스테이지 이동키입니다
+        # 숫자키로 기술 잠그기, 잠금 해제
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_1):
+            skillmovelocked = 1 - skillmovelocked
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_2):
+            skillqlocked = 1 - skillqlocked
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_3):
+            skillwlocked = 1 - skillwlocked
+
+        # F2 F3키는 테스트용으로, 각각 이전, 다음 스테이지 이동키입니다
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_F2):
             if nowgamestage > 11:  # 시작 스테이지가 아닐 경우
                 if int(nowgamestage % 10) == 1:  # 현재 1지역일 경우
@@ -442,10 +579,54 @@ def handle_events():
                 else:
                     nowgamestage += 1  # 다음 지역으로
 
+        # 키보드 각각 누른 경우
+
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_z):
+            keypressedz = 1
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_z):
+            keypressedz = 0
+
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_q):
+            keypressedq = 1
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_q):
+            keypressedq = 0
+
+        elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_w):
+            keypressedw = 1
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_w):
+            keypressedw = 0
+
         # esc키를 누를 경우 메인 메뉴로 이동
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_ESCAPE):
             game_framework.change_state(frame_main)
             delay(DELAYTIME)
+
+        # 마우스 이동시
+        elif event.type == SDL_MOUSEMOTION:
+            mousex, mousey = event.x, frame_main.WINDOWYSIZE - 1 - event.y
+
+            if nowqstate == 1:
+                if mousex < 0:
+                    mousex = 0
+                if mousex > 680:
+                    mousex = 680
+                if mousey < 120:
+                    mousey = 120
+                if mousey > 700:
+                    mousey = 700
+
+        # 마우스 떼었을 때
+        elif event.type == SDL_MOUSEBUTTONUP:
+            if nowqstate == 1:
+                if eunbi.energynow >= eunbi.energymax * (skillqneedenergypercent / 100):
+                    eunbi.energynow -= eunbi.energymax * (skillqneedenergypercent / 100)
+                    nowqstate = 2
+                    mouseclickedx, mouseclickedy = mousex, mousey
+                    eunbi.x, eunbi.y = mouseclickedx, mouseclickedy
+
+                else:
+                    nowqstate = 0
+
 
         # 그 외의 경우 은비(플레이어) 캐릭터 컨트롤러 실행
         else:
