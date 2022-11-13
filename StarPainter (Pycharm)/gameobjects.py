@@ -93,6 +93,15 @@ class Star:
 
         self.image.draw(x, y) # 별 이미지 그리기
 
+    # 충돌 범위
+    def gethitarea(self):
+        return self.x-10, self.y+10, self.x+10, self.y-10
+
+    # 충돌 처리
+    def handle_collision(self, other, group):
+        self.ifdraw = True
+        pass
+
     pass
 
 # 체력 기력 표시칸
@@ -132,13 +141,43 @@ class Energyimage:
 
     def __init__(self):
         if Energyimage.image is None:
-            Energyimage.image = load_image('energyimage.png')  # 도약 효과 이미지 그리기
+            Energyimage.image = load_image('energyimage.png')
             self.frame = 0  # 애니메이션 프레임
 
     def draw(self, x, y, drawl):
         self.image.clip_draw(0, 0, drawl, 30, x, y)
 
     pass
+
+# ------------ 장애물, 적 오브젝트 클래스들 ------------
+
+# 장애물 - 행성
+
+class Planet:
+    image = None
+
+    def __init__(self):
+        self.x, self.y = frame_main.UNSET, frame_main.UNSET
+        if Planet.image is None:
+            Planet.image = load_image('planetimage.png')
+
+
+    def draw(self, x, y):
+        self.image.draw(x, y)
+        self.x, self.y = x, y
+        draw_rectangle(*self.gethitarea())
+
+    # 충돌 범위
+    def gethitarea(self):
+        return self.x-35, self.y+30, self.x+35,self.y-30
+
+    # 충돌 처리
+    def handle_collision(self, other, group):
+        pass
+
+    pass
+
+
 
 # ------------ 직접 실행시켰을 경우 ------------
 

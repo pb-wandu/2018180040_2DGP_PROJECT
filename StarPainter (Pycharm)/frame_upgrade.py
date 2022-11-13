@@ -29,6 +29,28 @@ def enter():
 def exit():
     global upgradeimage
     del upgradeimage
+
+    # 다음 스테이지(또는 다음 차원)로 이동
+    frame_game.nowgamestage += 1  # 다음 스테이지로 이동
+    if int(frame_game.nowgamestage % 10) == 5:  # 현재 5지역일 경우
+        frame_game.nowgamestage += 10  # 다음 차원으로
+        frame_game.nowgamestage -= 4  # 1지역으로
+
+    frame_game.nowcollectedstar = 0  # 모은 별 개수 초기화
+    frame_game.ifstagedrawed = 0  # 스테이지 그려짐 여부 초기화
+
+    # 최대 체력과 기력으로 스테이지 시작
+    frame_game.eunbi.lifenow, frame_game.eunbi.energynow = frame_game.eunbi.lifemax, frame_game.eunbi.energymax
+
+    # 키 입력 초기화
+    frame_game.keypressedleft = 0
+    frame_game.keypressedright = 0
+    frame_game.keypressedz, frame_game.keypressedq, frame_game.keypressedw = 0, 0, 0
+
+    # 대기시간 초기화
+    frame_game.nowskillmovecooltime = 0
+    frame_game.nowskillqcooltime = 0
+
     pass
 
 # 화면 그리기

@@ -122,6 +122,9 @@ class IDLE:  # 플레이어 정지 동작
 
         # 눌린 키에 따라 동작 수행
 
+        if frame_game.keypressedleft == 0 and frame_game.keypressedright == 0:
+            self.nowstate = frame_game.STOP
+
         if frame_game.keypressedleft == 1:
             self.movexy(-self.xspd, 0)  # 왼쪽 이동
             self.frame = 0
@@ -756,9 +759,6 @@ class Player:
         self.yspd = 0  # y축 이동속도
         self.frame = 0  # 애니메이션 프레임
 
-        self.LPamount = STARTLPAMOUNT  # 체력
-        self.EPamount = STARTEPAMOUNT  # 기력
-
         self.yjumpamount = 11  # 날기(점프)시 이동하는 정도
         self.cooltime_quickmove = frame_game.UNSET  # 도약 쿨타임
         self.cooltime_warp = frame_game.UNSET  # 순간이동 쿨타임
@@ -768,11 +768,16 @@ class Player:
         self.lifemax, self.energymax = 100, 100  # 시작시엔 최대 체력 100으로 시작
         self.lifenow, self.energynow = 100, 100  # 시작시엔 최대 기력 100으로 시작
 
+        self.nowinvincible = 0 # 현재 무적 상태인지 여부
+        self.nowhit = 0 # 현재 충돌됐는지 여부
+        self.hittime = 0 # 충돌된 후 무적 시간
+
         # (// 기력 관련 변수는 테스트하면서 값을 조정합니다)
         self.groundaddenergy = 2.4  # 땅에서 점점 회복되는 기력
         self.drawneedenergy = 3  # 그리는데 필요한 기력
         self.yjumpneedenergy = 7.5  # 날기(점프)에 필요한 기력
 
+        # 이벤트 큐
         self.q = []  # 이벤트 큐 초기화
         self.cur_state = IDLE  # 현재 상태를 정지 상태로 지정
         self.cur_state.enter(self, None)  # 초기 상태(IDLE) enter 동작 수행
@@ -793,6 +798,7 @@ class Player:
     # 그리기
     def draw(self):
         self.cur_state.draw(self)
+        draw_rectangle(*self.gethitarea())
         pass
 
     # x, y 각각 좌표만큼 이동
@@ -801,10 +807,31 @@ class Player:
         self.y += y
         pass
 
+    # 충돌 범위
+    def gethitarea(self):
+        return self.x-15, self.y+40, self.x+15, self.y
+
+    # 충돌 처리
+    def handle_collision(self, other, group):
+        print('player hit')
+        if self.nowinvincible == 0:
+            # 무적이 아닐 경우
+            self.nowhit = 1  # 현재 충돌됐는지 여부
+            self.lifenow -= 30 # 체력을 30만큼 깎는다
+            self.afterhit()
+        pass
+
+    # 충돌 이후 일시 무적
+    def afterhit(self):
+        self.nowinvincible = 1 # 일시 무적
+        self.hittime = 20  # 충돌된 후 무적 시간
+        pass
+
+
     pass
 
 
-# ----- 효과 그리기, 애니메이션 -----
+# ------------ 효과 그리기, 애니메이션 ------------
 
 # 효과 그리기
 

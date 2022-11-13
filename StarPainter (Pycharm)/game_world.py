@@ -22,6 +22,8 @@ lifeenergybar, lifeimage, energyimage = None, None, None # 바탕, 체력, 기�
 
 gameobjectsarr = [[], [], []]
 
+collision_group = dict()
+
 # 오브젝트 1개 더하기
 def add_object(obj, depth):
     gameobjectsarr[depth].append(obj)
@@ -37,6 +39,9 @@ def remove_object(obj):
     for layer in gameobjectsarr:
         if obj in layer:
             layer.remove(obj)
+
+            remove_collision_object(obj)
+
             del obj
             return
     raise ValueError('Trying destroy non existing object')
@@ -53,3 +58,34 @@ def clear_all_objects():
         del obj
     for layer in gameobjectsarr:
         layer.clear()
+
+# 충돌 대상 더하기
+def add_collision_pairs(a, b, group):
+    if group not in collision_group:
+        print('add new group')
+        collision_group[group] = [ [], [] ]
+
+    if a:
+        if type(a) == list:
+            collision_group[group][0] += a # 리스트 추가
+        else:
+            collision_group[group][0].append(a) # 단일 오브젝트 추가
+
+    if b:
+        if type(b) == list:
+            collision_group[group][1] += b # 리스트 추가
+        else:
+            collision_group[group][1].append(b) # 단일 오브젝트 추가
+
+# 모든 충돌 쌍들
+def all_collision_pairs():
+    for group, pairs in collision_group.items():
+        for a in pairs[0]:
+            for b in pairs[1]:
+                yield a, b, group
+
+# 충돌 오브젝트 제거
+def remove_collision_object(o):
+    for pairs in collision_group.values():
+        if o in pairs[0]: pairs[0].remove(o)
+        elif o in pairs[1]: pairs[1].remove(o)

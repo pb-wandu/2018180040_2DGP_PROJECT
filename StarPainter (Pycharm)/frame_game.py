@@ -12,6 +12,7 @@ import frame_upgrade      # 별그림자 회랑 (강화) 메뉴 전환시 호출
 import frame_pause        # 대기 전환시 호출
 
 import game_world         # 게임 월드 및 스테이지 관련 변수, 함수
+import stageinfo          # 스테이지 관련 변수, 함수
 
 # ------------ 상수들 ------------
 
@@ -36,7 +37,8 @@ mousepressed = 0 # 마우스 클릭한 여부
 
 stagerestart = 0 # 스테이지 재시작 여부
 
-nowcollectedstar, ifstagedrawed = 0, 0
+nowcollectedstar = 0 # 현재 모은 별 개수
+ifstagedrawed = 0 # 스테이지 그려짐 여부
 
 # 키 각각 입력 여부
 keypressedleft, keypressedright, keypressedup, keypresseddown = 0, 0, 0, 0
@@ -98,24 +100,9 @@ PLACENUM = 5 # 각 차원당 장소 개수
 
 STARSIZE = 30 # 별 크기
 
-# 각 차원-지역 (스테이지)당 필요한 별 개수 (== 그려야 하는 목표지점)
-needtocollectstar = \
-    [[2, 4, UNSET, UNSET, UNSET],
-    [UNSET, UNSET, UNSET, UNSET, UNSET],
-    [UNSET, UNSET, UNSET, UNSET, UNSET],
-    [UNSET, UNSET, UNSET, UNSET, UNSET],
-    [UNSET, UNSET, UNSET, UNSET, UNSET],
-    [UNSET, UNSET, UNSET, UNSET, UNSET]]
-
-starplaces = [] # 별을 저장할 배열
-
-# 별의 좌표 범위는 [10~670, 200~690]으로 지정합니다
-starplacesset = [ # 별을 표시할 위치
-    [ [100, 500], [500, 240], [UNSET, UNSET], [UNSET, UNSET] ], # 1-1
-    [ [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET] ] # 1-2
-]
-
 # 스테이지 확인
+
+OBJSNUMMAX = 6 # 오브젝트 개수 상한
 
 stardrawed = [False, False, False, False, False, False, False, False, False, False] # 해당 위치에 별이 그려졌는지 확인
 
@@ -126,7 +113,6 @@ energyimageadjust = 0 # 왼쪽으로 정렬 이동값
 
 def stagecheck(stage, arr):
     global nowcollectedstar # 현재 모은 별
-    global starplaces # 별을 저장할 배열
 
     global nowdrawing  # 현재 그림 그리고 있는지 여부
 
@@ -134,10 +120,10 @@ def stagecheck(stage, arr):
 
     global nowlifelength, nowenergylength, lifeimageadjust, energyimageadjust
 
+    global eunbi # 은비(플레이어)
+
     worldnow = int(stage / 10)  # 현재 차원
     placenow = stage % 10  # 현재 장소
-    nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
-    starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
 
     # 체력, 기력 정보 관리
 
@@ -149,10 +135,13 @@ def stagecheck(stage, arr):
     # starplacesset에서 현재 스테이지 좌표가 있는 위치
     starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
 
+    nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
+    stageinfo.starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
+
     for i in range(nowstageneedstar):
 
-        x = starplacesset[starplacessetplace][i][0]
-        y = starplacesset[starplacessetplace][i][1]
+        x = stageinfo.starplacesset[starplacessetplace][i][0]
+        y = stageinfo.starplacesset[starplacessetplace][i][1]
 
         # 충돌 판정
 
@@ -165,17 +154,34 @@ def stagecheck(stage, arr):
 
         # 만약 별이 그려지지 않은 경우
         if not stardrawed[i] and nowdrawing == 1:
+
             # 별을 그리는 좌표가 목표 지점의 안에 있을 때 (15px 별 범위 보정 적용)
             if x - (STARSIZE / 2 - 15) <= drawx <= (x + STARSIZE / 2 + 15)\
                     and (y - STARSIZE / 2 - 15) <= drawy <= (y + STARSIZE / 2 + 15):
                 stardrawed[i] = True
-                starplaces[i].ifdraw = True  # 별을 그렸음
+                stageinfo.starplaces[i].ifdraw = True  # 별을 그렸음
                 nowdrawing = 0
                 nowcollectedstar += 1  # 별을 하나 그림
+
+    for i in range(OBJSNUMMAX):
+        if stageinfo.planetobjs[i] is not None:
+            if collide(eunbi, stageinfo.planetobjs[i]):
+                eunbi.handle_collision(stageinfo.planetobjs[i], 'eunbi_planet')
+                stageinfo.planetobjs[i].handle_collision(eunbi, 'eunbi_planet')
 
     # 현재 모은 별 개수가 현재 차원에서 요구하는 별 개수와 같다면
     if nowcollectedstar == nowstageneedstar:
         return 'cleared'
+
+    # 은비(플레이어) 충돌시 무적상태
+    if eunbi.hittime > 0:
+        eunbi.hittime -= 1
+    else:
+        eunbi.nowinvincible = 0
+
+    # 체력이 0 이하이면 시작 메뉴로 이동
+    if eunbi.lifenow <= 0:
+        game_framework.change_state(frame_main)
 
     pass
 
@@ -184,9 +190,9 @@ def stagecheck(stage, arr):
 
 ifstagedrawed = 0 # 스테이지 그려짐 여부
 
-def stagedraw(stage, arr):
+def stagedraw(stage):
+
     global nowcollectedstar # 현재 모은 별
-    global starplaces # 별을 저장할 배열
 
     global nowdrawing  # 현재 그림 그리고 있는지 여부
     global ifstagedrawed  # 스테이지 그려짐 여부
@@ -195,12 +201,6 @@ def stagedraw(stage, arr):
 
     worldnow = int(stage / 10)  # 현재 차원
     placenow = stage % 10  # 현재 장소
-    nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
-    starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
-
-    worldnow = int(stage / 10)  # 현재 차원
-    placenow = stage % 10  # 현재 장소
-    nowstageneedstar = arr[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
 
     # 글자 표시
     stagefont = load_font('WLR-1_Yeongyeon_v1_3.TTF', 16)
@@ -208,8 +208,11 @@ def stagedraw(stage, arr):
 
     stagefont.draw(5, frame_main.WINDOWYSIZE - 21, stagetext, (0, 0, 80))
 
-    # starplacesset에서 현재 스테이지 좌표가 있는 위치
-    starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
+    # 현재 스테이지 좌표가 있는 위치
+    placessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
+
+    nowstageneedstar = stageinfo.needtocollectstar[worldnow - 1][placenow - 1] # 현재 스테이지에서 필요한 별
+    starplaces = [gameobjects.Star() for i in range(nowstageneedstar)] # 별들을 저장할 위치
 
     for i in range(nowstageneedstar):
 
@@ -218,9 +221,23 @@ def stagedraw(stage, arr):
         else:
             starplaces[i].ifdraw = False
 
-        x = starplacesset[starplacessetplace][i][0]
-        y = starplacesset[starplacessetplace][i][1]
+        x = stageinfo.starplacesset[placessetplace][i][0]
+        y = stageinfo.starplacesset[placessetplace][i][1]
         starplaces[i].draw(x, y)
+
+    stageinfo.planetobjs = [gameobjects.Planet() for i in range(OBJSNUMMAX)]  # 행성들을 저장할 위치
+
+    for i in range(OBJSNUMMAX):
+        if stageinfo.planetobjs[i] is not None:
+            stageinfo.planetobjs[i].x = stageinfo.planetplacesset[placessetplace][i][0]
+            stageinfo.planetobjs[i].y = stageinfo.planetplacesset[placessetplace][i][1]
+            stageinfo.planetobjs[i].draw(stageinfo.planetobjs[i].x, stageinfo.planetobjs[i].y)
+
+    # 은비(플레이어) 충돌시 무적상태
+    if eunbi.hittime > 0:
+        invincibleimg = load_image('invincibleimg.png')  # 무적 상태 이미지
+        invincibleimg.draw(eunbi.x, eunbi.y + 20)
+
 
     pass
 
@@ -238,6 +255,8 @@ def enter():
     global jumpeffect, wingimage, quickmove, draweffect
 
     global skill2usingimg
+
+    global planetobjs
 
     # 현위치 지정
     frame_main.nowplace = frame_main.PL_STAGE
@@ -296,9 +315,35 @@ def enter():
     game_world.add_object(game_world.lifeimage, 0) # 체력 이미지
     game_world.add_object(game_world.energyimage, 0) # 기력 이미지
 
+    # 충돌 대상 정보 등록
+    # ### 게임 월드를 이용한 처리가 안 되어 임시방편으로 코드 짠 상태 - 수정 예정
+    # game_world.add_collision_pairs(eunbi, planetobjs, "eunbi_planetobjs") # 은비(플레이어)와 행성
+
     pass
 
+# 충돌 확인
+
+def collide(a, b):
+
+    # None이 아닌 값들에 한하여 확인한다
+    if a is not None and b is not None:
+
+        aleft, atop, aright, abottom = a.gethitarea()
+        bleft, btop, bright, bbottom = b.gethitarea()
+
+        if aleft > bright: return False
+        if aright < bleft: return False
+        if abottom > btop: return False
+        if atop < bbottom: return False
+
+        print(a.gethitarea())
+        print(b.gethitarea())
+        return True
+
+    return False
+
 # 화면 그리기
+
 def draw():
     global skill2usingimg
     global skillmovelocked, skillqlocked, skillwlocked
@@ -366,7 +411,7 @@ def draw():
 
     # 스테이지 그리기
 
-    stagedraw(nowgamestage, needtocollectstar)
+    stagedraw(nowgamestage)
 
     # 화면 업데이트
 
@@ -377,6 +422,16 @@ def draw():
 # 업데이트
 
 def update():
+
+    # for game_object in game_world.all_objects():
+    #    game_object.update()
+
+    # 충돌 확인 및 처리
+    for a, b, group in game_world.all_collision_pairs():
+        if collide(a, b):
+            print("Collision ", group)
+            a.handle_collision(b, group)
+            b.handle_collision(a, group)
 
     global mousepressed # 마우스 클릭한 여부
     global mouseclickedx, mouseclickedy  # 마우스 클릭한 x좌표, y좌표
@@ -402,30 +457,6 @@ def update():
 
     # 동작 잠그기, 잠금 해제
     global skillmovelocked, skillqlocked, skillwlocked
-
-    # 스테이지 재시작시
-    if stagerestart == 1:
-
-        # 다음 스테이지(또는 다음 차원)로 이동
-        nowgamestage += 1  # 다음 스테이지로 이동
-        if int(nowgamestage % 10) == 5:  # 현재 5지역일 경우
-            nowgamestage += 10  # 다음 차원으로
-            nowgamestage -= 4  # 1지역으로
-
-        nowcollectedstar = 0  # 모은 별 개수 초기화
-        ifstagedrawed = 0  # 스테이지 그려짐 여부 초기화
-
-        # 최대 체력과 기력으로 스테이지 시작
-        eunbi.lifenow, eunbi.energynow = eunbi.lifemax, eunbi.energymax
-
-        # 키 입력 초기화
-        keypressedleft = 0
-        keypressedright = 0
-        keypressedz, keypressedq, keypressedw = 0, 0, 0
-
-        # 재시작 재설정 완료
-        stagerestart = 0
-        pass
 
     # --- 기술 메뉴 표시 ---
 
@@ -497,7 +528,7 @@ def update():
         pass
 
     # 스테이지 정보 확인
-    stagecheckresult = stagecheck(nowgamestage, needtocollectstar)
+    stagecheckresult = stagecheck(nowgamestage, stageinfo.needtocollectstar)
     if stagecheckresult == 'cleared':
         # [별그림자 회랑] 강화 메뉴로 이동
         game_framework.change_state(frame_upgrade)
@@ -514,6 +545,11 @@ def update():
 # 종료
 
 def exit():
+    global keypressedleft, keypressedright, keypressedz, keypressedq, keypressedw
+
+    keypressedleft, keypressedright, keypressedz, keypressedq, keypressedw = 0, 0, 0, 0, 0
+    eunbi.nowstate = STOP
+
     # 게임 월드에 있는 모든 오브젝트 지우기
     game_world.clear_all_objects()
 
@@ -537,12 +573,14 @@ def handle_events():
     global nowdashl, nowdashr # 해당 방향으로 도약 여부
 
     global nowqstate # 현재 q (순간이동) 수행중 여부
-    global skillqcooltime  # 도약 대기시간 (쿨타임)
-    global nowskillqcooltime # 현재 도약 대기시간 (쿨타임)
+    global skillqcooltime  # 순간이동 대기시간 (쿨타임)
+    global nowskillqcooltime # 현재 순간이동 대기시간 (쿨타임)
 
     global nowgamestage
 
     global skillmovelocked, skillqlocked, skillwlocked
+
+    global nowskillmovecooltime, nowqstate
 
     for event in events:
 
@@ -555,14 +593,22 @@ def handle_events():
             game_framework.push_state(frame_pause)  # 일시정지 메뉴 열기
 
         # 숫자키로 기술 잠그기, 잠금 해제
+
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_1):
             skillmovelocked = 1 - skillmovelocked
+            if skillmovelocked == 1:
+                nowskillmovecooltime = 0
+
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_2):
             skillqlocked = 1 - skillqlocked
+            if skillqlocked == 1:
+                nowqstate = 0
+
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_3):
             skillwlocked = 1 - skillwlocked
 
         # F2 F3키는 테스트용으로, 각각 이전, 다음 스테이지 이동키입니다
+
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_F2):
             if nowgamestage > 11:  # 시작 스테이지가 아닐 경우
                 if int(nowgamestage % 10) == 1:  # 현재 1지역일 경우
