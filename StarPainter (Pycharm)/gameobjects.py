@@ -82,20 +82,23 @@ class Skill3image:
 class Star:
 
     def __init__(self):
+        self.x, self.y = frame_main.UNSET, frame_main.UNSET
         self.image = None # 아래 참고
         self.ifdraw = False # 그렸는지 판정 변수
 
     def draw(self, x, y):
+        self.x, self.y = x, y
         if self.ifdraw:
             self.image = load_image('starpainted.png')  # 별 이미지 이미지 그리기
         else:
             self.image = load_image('starplace.png')  # 목표 지점 이미지 그리기
 
         self.image.draw(x, y) # 별 이미지 그리기
+        draw_rectangle(*self.gethitarea())
 
     # 충돌 범위
     def gethitarea(self):
-        return self.x-10, self.y+10, self.x+10, self.y-10
+        return self.x-15, self.y+15, self.x+15, self.y-15
 
     # 충돌 처리
     def handle_collision(self, other, group):
@@ -167,9 +170,9 @@ class Planet:
         self.x, self.y = x, y
         draw_rectangle(*self.gethitarea())
 
-    # 충돌 범위
+    # 충돌 범위 (상하좌우 3px 보정)
     def gethitarea(self):
-        return self.x-35, self.y+30, self.x+35,self.y-30
+        return self.x-32, self.y+27, self.x+32,self.y-27
 
     # 충돌 처리
     def handle_collision(self, other, group):

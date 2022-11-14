@@ -5,11 +5,12 @@
 
 # ------------ import 파일들 ------------
 
-from pico2d import *  # pico2d 라이브러리 import
-import game_framework  # 게임 프레임워크 import
+from pico2d import *      # pico2d 라이브러리 import
+import game_framework     # 게임 프레임워크 import
 
-import frame_game  # 게임 메뉴 변수들 사용
-import frame_main  # 메인 메뉴 변수들 사용
+import frame_game         # 게임 메뉴 변수들 사용
+import frame_main         # 메인 메뉴 변수들 사용
+import control            # 컨트롤 관련 변수, 함수
 
 # ------------ 은비(플레이어) 관련 변수들 ------------
 
@@ -35,7 +36,7 @@ class IDLE:  # 플레이어 정지 동작
 
         # 왼쪽 키 눌렀을 때
         if event == EV_LD:
-            frame_game.keypressedleft = 1  # 왼쪽 키 눌림
+            control.keypressedleft = 1  # 왼쪽 키 눌림
 
             if frame_game.ifnowclickl == 0:
                 frame_game.ifnowclickl = 1  # 왼쪽 눌렸음
@@ -57,7 +58,7 @@ class IDLE:  # 플레이어 정지 동작
 
         # 오른쪽 키 눌렀을 때
         if event == EV_RD:
-            frame_game.keypressedright = 1  # 오른쪽 키 눌림
+            control.keypressedright = 1  # 오른쪽 키 눌림
 
             if frame_game.ifnowclickr == 0:
                 frame_game.ifnowclickr = 1  # 왼쪽 눌렸음
@@ -79,11 +80,11 @@ class IDLE:  # 플레이어 정지 동작
 
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
-            frame_game.keypressedleft = 0  # 왼쪽 키 뗌
+            control.keypressedleft = 0  # 왼쪽 키 뗌
 
         # 오른쪽 키 뗐을 때
         if event == EV_RU:
-            frame_game.keypressedright = 0  # 오른쪽 키 뗌
+            control.keypressedright = 0  # 오른쪽 키 뗌
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
@@ -122,25 +123,25 @@ class IDLE:  # 플레이어 정지 동작
 
         # 눌린 키에 따라 동작 수행
 
-        if frame_game.keypressedleft == 0 and frame_game.keypressedright == 0:
+        if control.keypressedleft == 0 and control.keypressedright == 0:
             self.nowstate = frame_game.STOP
 
-        if frame_game.keypressedleft == 1:
+        if control.keypressedleft == 1:
             self.movexy(-self.xspd, 0)  # 왼쪽 이동
             self.frame = 0
 
-            if frame_game.keypressedz == 0:
+            if control.keypressedz == 0:
                 self.nowstate = frame_game.LEFT
-            elif frame_game.keypressedz == 1:
+            elif control.keypressedz == 1:
                 self.nowstate = frame_game.LEFTDRAWING
 
-        if frame_game.keypressedright == 1:
+        if control.keypressedright == 1:
             self.movexy(+self.xspd, 0)  # 오른쪽 이동
             self.frame = 1
 
-            if frame_game.keypressedz == 0:
+            if control.keypressedz == 0:
                 self.nowstate = frame_game.RIGHT
-            elif frame_game.keypressedz == 1:
+            elif control.keypressedz == 1:
                 self.nowstate = frame_game.RIGHTDRAWING
 
         # 플레이어는 yspd만큼 y축 방향으로 이동한다
@@ -206,7 +207,7 @@ class WALK:  # 플레이어 이동 동작
 
         # 왼쪽 키 눌렀을 때
         if event == EV_LD:
-            frame_game.keypressedleft = 1  # 왼쪽 키 눌림
+            control.keypressedleft = 1  # 왼쪽 키 눌림
 
             if frame_game.ifnowclickl == 0:
                 frame_game.ifnowclickl = 1  # 왼쪽 눌렸음
@@ -215,10 +216,10 @@ class WALK:  # 플레이어 이동 동작
             # 왼쪽 키를 누르고 있을 때
             elif frame_game.ifnowclickl == 1:
                 # 시간 안에 다시 같은 키를 누르고 그림 그리는 중이 아니고 대기 시간이 아니라면
-                if frame_game.skillmovelocked == 0 and frame_game.keypressedz == 0 \
+                if frame_game.skillmovelocked == 0 and control.keypressedz == 0 \
                         and frame_game.nowdashtime > 0 and frame_game.nowskillmovecooltime == 0:
                     frame_game.nowdashtime = 0
-                    frame_game.ifnowclickl = 0
+                    control.ifnowclickl = 0
 
                     if self.energynow >= frame_game.skillmoveneedenergy:
                         self.energynow -= frame_game.skillmoveneedenergy
@@ -228,7 +229,7 @@ class WALK:  # 플레이어 이동 동작
 
         # 오른쪽 키 눌렀을 때
         if event == EV_RD:
-            frame_game.keypressedright = 1  # 오른쪽 키 눌림
+            control.keypressedright = 1  # 오른쪽 키 눌림
 
             if frame_game.ifnowclickr == 0:
                 frame_game.ifnowclickr = 1  # 왼쪽 눌렸음
@@ -237,7 +238,7 @@ class WALK:  # 플레이어 이동 동작
             # 오른쪽 키를 누르고 있을 때
             elif frame_game.ifnowclickr == 1:
                 # 시간 안에 다시 같은 키를 누르고 그림 그리는 중이 아니고 대기 시간이 아니라면
-                if frame_game.skillmovelocked == 0 and frame_game.keypressedz == 0 \
+                if frame_game.skillmovelocked == 0 and control.keypressedz == 0 \
                         and frame_game.nowdashtime > 0 and frame_game.nowskillmovecooltime == 0:
                     frame_game.nowdashtime = 0
                     frame_game.ifnowclickr = 0
@@ -250,11 +251,11 @@ class WALK:  # 플레이어 이동 동작
 
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
-            frame_game.keypressedleft = 0  # 왼쪽 키 뗌
+            control.keypressedleft = 0  # 왼쪽 키 뗌
 
         # 오른쪽 키 뗐을 때
         if event == EV_RU:
-            frame_game.keypressedright = 0  # 오른쪽 키 뗌
+            control.keypressedright = 0  # 오른쪽 키 뗌
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
@@ -274,11 +275,11 @@ class WALK:  # 플레이어 이동 동작
             # 별 그리기에 필요한 기력보다 현재 기력이 많을 경우
             if self.energynow >= self.drawneedenergy:
                 self.energynow -= self.drawneedenergy
-                frame_game.keypressedz = 1  # z키 누름
+                control.keypressedz = 1  # z키 누름
 
         # z키 뗐을 때
         if event == EV_ZU:
-            frame_game.keypressedz = 0  # z키 뗌
+            control.keypressedz = 0  # z키 뗌
 
         pass
 
@@ -293,22 +294,22 @@ class WALK:  # 플레이어 이동 동작
 
         # 눌린 키에 따라 동작 수행
 
-        if frame_game.keypressedleft == 1:
+        if control.keypressedleft == 1:
             self.movexy(-self.xspd, 0)  # 왼쪽 이동
             self.frame = 0
 
-            if frame_game.keypressedz == 0:
+            if control.keypressedz == 0:
                 self.nowstate = frame_game.LEFT
-            elif frame_game.keypressedz == 1:
+            elif control.keypressedz == 1:
                 self.nowstate = frame_game.LEFTDRAWING
 
-        if frame_game.keypressedright == 1:
+        if control.keypressedright == 1:
             self.movexy(+self.xspd, 0)  # 오른쪽 이동
             self.frame = 1
 
-            if frame_game.keypressedz == 0:
+            if control.keypressedz == 0:
                 self.nowstate = frame_game.RIGHT
-            elif frame_game.keypressedz == 1:
+            elif control.keypressedz == 1:
                 self.nowstate = frame_game.RIGHTDRAWING
 
         # 플레이어는 yspd만큼 y축 방향으로 이동한다
@@ -373,19 +374,19 @@ class FLY:  # 플레이어 날기(점프) 동작
 
         # 왼쪽 키 눌렀을 때
         if event == EV_LD:
-            frame_game.keypressedleft = 1  # 왼쪽 키 눌림
+            control.keypressedleft = 1  # 왼쪽 키 눌림
 
-            if frame_game.ifnowclickl == 0:
-                frame_game.ifnowclickl = 1  # 왼쪽 눌렸음
+            if control.ifnowclickl == 0:
+                control.ifnowclickl = 1  # 왼쪽 눌렸음
                 frame_game.nowdashtime = frame_game.dashtime  # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
 
             # 왼쪽 키를 누르고 있을 때
-            elif frame_game.ifnowclickl == 1:
+            elif control.ifnowclickl == 1:
                 # 시간 안에 다시 같은 키를 누르고 그림 그리는 중이 아니고 대기 시간이 아니라면
-                if frame_game.skillmovelocked == 0 and frame_game.keypressedz == 0 \
+                if frame_game.skillmovelocked == 0 and control.keypressedz == 0 \
                         and frame_game.nowdashtime > 0 and frame_game.nowskillmovecooltime == 0:
                     frame_game.nowdashtime = 0
-                    frame_game.ifnowclickl = 0
+                    control.ifnowclickl = 0
 
                     if self.energynow >= frame_game.skillmoveneedenergy:
                         self.energynow -= frame_game.skillmoveneedenergy
@@ -395,7 +396,7 @@ class FLY:  # 플레이어 날기(점프) 동작
 
         # 오른쪽 키 눌렀을 때
         if event == EV_RD:
-            frame_game.keypressedright = 1  # 오른쪽 키 눌림
+            control.keypressedright = 1  # 오른쪽 키 눌림
 
             if frame_game.ifnowclickr == 0:
                 frame_game.ifnowclickr = 1  # 왼쪽 눌렸음
@@ -417,11 +418,11 @@ class FLY:  # 플레이어 날기(점프) 동작
 
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
-            frame_game.keypressedleft = 0  # 왼쪽 키 뗌
+            control.keypressedleft = 0  # 왼쪽 키 뗌
 
         # 오른쪽 키 뗐을 때
         if event == EV_RU:
-            frame_game.keypressedright = 0  # 오른쪽 키 뗌
+            control.keypressedright = 0  # 오른쪽 키 뗌
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
@@ -460,22 +461,22 @@ class FLY:  # 플레이어 날기(점프) 동작
 
         # 눌린 키에 따라 동작 수행
 
-        if frame_game.keypressedleft == 1:
+        if control.keypressedleft == 1:
             self.movexy(-self.xspd, 0)  # 왼쪽 이동
             self.frame = 0
 
-            if frame_game.keypressedz == 0:
+            if control.keypressedz == 0:
                 self.nowstate = frame_game.LEFT
-            elif frame_game.keypressedz == 1:
+            elif control.keypressedz == 1:
                 self.nowstate = frame_game.LEFTDRAWING
 
-        if frame_game.keypressedright == 1:
+        if control.keypressedright == 1:
             self.movexy(+self.xspd, 0)  # 오른쪽 이동
             self.frame = 1
 
-            if frame_game.keypressedz == 0:
+            if control.keypressedz == 0:
                 self.nowstate = frame_game.RIGHT
-            elif frame_game.keypressedz == 1:
+            elif control.keypressedz == 1:
                 self.nowstate = frame_game.RIGHTDRAWING
 
         # 플레이어는 yspd만큼 y축 방향으로 이동한다
@@ -574,11 +575,11 @@ class DRAW:  # 플레이어 별 그리기 동작
 
         # 왼쪽 키 뗐을 때
         if event == EV_LU:
-            frame_game.keypressedleft = 0  # 왼쪽 키 뗌
+            control.keypressedleft = 0  # 왼쪽 키 뗌
 
         # 오른쪽 키 뗐을 때
         if event == EV_RU:
-            frame_game.keypressedright = 0  # 오른쪽 키 뗌
+            control.keypressedright = 0  # 오른쪽 키 뗌
 
         # 스페이스바 뗐을 때
         if event == EV_SPU:
@@ -618,7 +619,7 @@ class DRAW:  # 플레이어 별 그리기 동작
 
         # 눌린 키에 따라 동작 수행
 
-        if frame_game.keypressedleft == 1:
+        if control.keypressedleft == 1:
             self.frame = 0
 
             if frame_game.keypressedz == 0:
@@ -626,12 +627,12 @@ class DRAW:  # 플레이어 별 그리기 동작
             elif frame_game.keypressedz == 1:
                 self.nowstate = frame_game.LEFTDRAWING
 
-        if frame_game.keypressedright == 1:
+        if control.keypressedright == 1:
             self.frame = 1
 
-            if frame_game.keypressedz == 0:
+            if control.keypressedz == 0:
                 self.nowstate = frame_game.RIGHT
-            elif frame_game.keypressedz == 1:
+            elif control.keypressedz == 1:
                 self.nowstate = frame_game.RIGHTDRAWING
 
         # 그림 그리고 있을 경우 그 자리에서 정지
@@ -814,6 +815,8 @@ class Player:
     # 충돌 처리
     def handle_collision(self, other, group):
         print('player hit')
+
+        # 무적일 경우에는 충돌 처리를 생략한다
         if self.nowinvincible == 0:
             # 무적이 아닐 경우
             self.nowhit = 1  # 현재 충돌됐는지 여부

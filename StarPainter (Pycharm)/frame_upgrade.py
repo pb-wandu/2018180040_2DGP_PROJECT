@@ -10,6 +10,8 @@ import frame_game         # 게임 메뉴 전환시 호출
 import object_player      # 플레이어 관련 변수 사용
 
 import game_world         # 게임 월드 및 스테이지 관련 변수, 함수
+import stageinfo          # 스테이지 관련 변수, 함수
+import control            # 컨트롤 관련 변수, 함수
 
 upgradeimage = None
 
@@ -31,10 +33,10 @@ def exit():
     del upgradeimage
 
     # 다음 스테이지(또는 다음 차원)로 이동
-    frame_game.nowgamestage += 1  # 다음 스테이지로 이동
-    if int(frame_game.nowgamestage % 10) == 5:  # 현재 5지역일 경우
-        frame_game.nowgamestage += 10  # 다음 차원으로
-        frame_game.nowgamestage -= 4  # 1지역으로
+    stageinfo.nowgamestage += 1  # 다음 스테이지로 이동
+    if int(stageinfo.nowgamestage % 10) == 5:  # 현재 5지역일 경우
+        stageinfo.nowgamestage += 10  # 다음 차원으로
+        stageinfo.nowgamestage -= 4  # 1지역으로
 
     frame_game.nowcollectedstar = 0  # 모은 별 개수 초기화
     frame_game.ifstagedrawed = 0  # 스테이지 그려짐 여부 초기화
@@ -69,25 +71,7 @@ def update():
 
 # 이벤트 핸들러
 def handle_events():
-    events = get_events()
-
-    for event in events:
-
-        # 종료일 때
-        if event.type == SDL_QUIT:
-            game_framework.quit()
-
-        # esc 또는 엔터키를 누를 경우 게임 메뉴(다음 스테이지)로 이동
-        elif event.type == SDL_KEYUP:
-
-            if event.key == SDLK_RETURN or event.key == SDLK_ESCAPE:
-
-                # 스테이지 재시작
-                frame_game.stagerestart = 1
-
-                # 게임 메뉴로 이동
-                game_framework.change_state(frame_game)
-                delay(frame_main.DELAYTIME)
+    control.frame_upgrade_events()
 
 # 직접 실행시켰을 경우
 
