@@ -21,10 +21,10 @@ nowtimelength = 0 # 전체 시간 대비 현재 남은 시간 표시 길이
 timeimageadjust = 0 # 왼쪽으로 정렬 이동값
 TIMEMAX = 100 # 한 스테이지당 시간 (초 단위 아님)
 
-# 각 스테이지별 시간 줄어드는 속도
+# 각 스테이지별 시간 줄어드는 속도 // 수정중
 
 timespd = \
-    [[0.12, 0.13, 0.14, 0.15, 0.16],
+    [[0.20, 0.21, 0.22, 0.23, 0.24],
     [UNSET, UNSET, UNSET, UNSET, UNSET],
     [UNSET, UNSET, UNSET, UNSET, UNSET],
     [UNSET, UNSET, UNSET, UNSET, UNSET],

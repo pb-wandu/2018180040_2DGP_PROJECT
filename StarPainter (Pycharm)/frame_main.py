@@ -41,7 +41,9 @@ def ifinsidesq(sql, sqr, sqd, squ, x, y):
 def enter():
     global imagebg
     global nowplace
-    
+
+    show_cursor() # 마우스 커서 보이기
+
     imagebg = load_image('mainmenuimg.png') # 시작 메뉴 이미지
 
     # 현위치 지정

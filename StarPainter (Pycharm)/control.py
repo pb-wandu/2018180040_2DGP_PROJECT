@@ -113,23 +113,23 @@ def frame_game_events():
             mousex, mousey = event.x, frame_main.WINDOWYSIZE - 1 - event.y
 
             if frame_game.nowqstate == 1:
-                if control.mousex < 0:
-                    control.mousex = 0
-                if control.mousex > 680:
-                    control.mousex = 680
-                if control.mousey < 120:
-                    control.mousey = 120
-                if control.mousey > 700:
-                    control.mousey = 700
+                if mousex < 0:
+                    mousex = 0
+                if mousex > 680:
+                    mousex = 680
+                if mousey < 120:
+                    mousey = 120
+                if mousey > 700:
+                    mousey = 700
 
         # 마우스 떼었을 때
         elif event.type == SDL_MOUSEBUTTONUP:
             if frame_game.nowqstate == 1:
-                if eunbi.energynow >= eunbi.energymax * (skillqneedenergypercent / 100):
-                    eunbi.energynow -= eunbi.energymax * (skillqneedenergypercent / 100)
+                if frame_game.eunbi.energynow >= frame_game.eunbi.energymax * (frame_game.skillqneedenergypercent / 100):
+                    frame_game.eunbi.energynow -= frame_game.eunbi.energymax * (frame_game.skillqneedenergypercent / 100)
                     frame_game.nowqstate = 2
                     mouseclickedx, mouseclickedy = mousex, mousey
-                    eunbi.x, eunbi.y = control.mouseclickedx, control.mouseclickedy
+                    frame_game.eunbi.x, frame_game.eunbi.y = mouseclickedx, mouseclickedy
 
                 else:
                     frame_game.nowqstate = 0

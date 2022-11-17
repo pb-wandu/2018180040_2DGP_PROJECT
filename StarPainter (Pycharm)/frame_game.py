@@ -67,9 +67,6 @@ ifnowclickl = 0 # 지금 왼쪽 눌렀는가 변수
 nowdashtime = 0 # 0이 되기 전에 같은 키를 다시 누르면 도약을 수행
 nowdashl, nowdashr = 0, 0  # 해당 방향으로 도약 여부
 
-nowskillmovecooltime = 0  # 도약 대기시간
-nowskillqcooltime = 0  # 순간이동 대기시간
-
 nowqstate = 0 # q (순간이동) 기술 사용중 여부
 
 # 별그림자 회랑에서 강화 가능한 값들 (// 수시로 수정하며 확인합니다)
@@ -78,10 +75,17 @@ dashtime = 40 # 이 시간 안에 같은 키를 다시 누르면 도약을 수�
 skillmovecooltime = 60 # 현재 도약 대기시간
 dashamount = 50 # 도약 크기
 
-skillqcooltime = 150  # 순간이동 대기시간
-
 skillmoveneedenergy = 50 # 도약 사용시 기력 요구치
 skillqneedenergypercent = 40 # 순간이동 사용시 기력 요구 퍼센트
+
+nowskillmovecooltime = 0  # 도약 대기시간
+
+nowskillqcooltime = 0  # 현재 순간이동 대기시간
+skillqcooltime = 150  # 순간이동 대기시간
+
+nowskillwcooltime = 0 # 현재 반짝임 (일시 무적) 대기시간
+skillwcooltime = 200 # 반짝임 (일시 무적) 대기시간
+skillwinvincibletime = 30 # 일시 무적시 무적시간
 
 # ------------ 스테이지 관리 함수 ------------
 
@@ -426,6 +430,7 @@ def update():
 
     global skillmovecooltime, nowskillmovecooltime
     global skillqcooltime, nowskillqcooltime
+    global skillwcooltime, nowskillwcooltime
 
     global skillmoveneedenergy # 도약 사용시 기력 요구치
     global skillqneedenergypercent # 순간이동 사용시 기력 요구 퍼센트
@@ -448,6 +453,13 @@ def update():
         skill2image.frame = 1  # 순간이동 실행중
     elif nowqstate == 2 or nowqstate == 3:
         skill2image.frame = 2  # 순간이동 대기시간중
+
+    if nowskillwcooltime == 0:
+        skill3image.frame = 0  # 반짝임 (일시 무적) 실행 가능
+    elif eunbi.nowinvincible == 1:
+        skill3image.frame = 1  # 반짝임 (일시 무적) 실행중
+    elif nowskillwcooltime > 0:
+        skill3image.frame = 2  # 반짝임 (일시 무적) 대기시간중
 
     # 도약 동작
     if nowdashr == 1:  # 오른쪽 도약 실행시
@@ -498,9 +510,17 @@ def update():
             nowqstate = 0
 
     # 반짝임
+
     if control.keypressedw == 1:
-        # // 추가 예정
+        # 잠겨있지 않고 대기시간이 0이면 수행한다
+        if skillwlocked == 0 and nowskillwcooltime == 0:
+            nowskillwcooltime = skillwcooltime
+            # 은비 - 반짝임 (일시 무적) 동작
+            eunbi.afterwskill()
         pass
+
+    elif nowskillwcooltime > 0:
+        nowskillwcooltime -= 1
 
     # 스테이지 정보 확인
     stagecheckresult = stagecheck(stageinfo.nowgamestage)

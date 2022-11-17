@@ -197,31 +197,36 @@ class Planet:
 
     pass
 
-# 장애물 -
+# 장애물 - 위성 (Planet을 상속받는 클래스입니다)
 
-class Planet:
+class Moon(Planet):
+
+    '''
     image = None
 
     def __init__(self):
+        super().__init__() # (Planet의 __init__ : 실질적으로 하는 기능은 없음)
         self.x, self.y = frame_main.UNSET, frame_main.UNSET
         if Planet.image is None:
-            Planet.image = load_image('planetimage.png')
-
+            Planet.image = load_image('moonimage.png')
 
     def draw(self, x, y):
-        self.image.draw(x, y)
-        self.x, self.y = x, y
-        draw_rectangle(*self.gethitarea())
+        # Planet의 draw : 동일한 기능을 수행함
+        super().draw(x, y)
 
     # 충돌 범위 (상하좌우 3px 보정)
     def gethitarea(self):
-        return self.x-32, self.y+27, self.x+32,self.y-27
+        # Planet의 gethitarea : 동일한 기능을 수행함
+        super().gethitarea()
 
     # 충돌 처리
     def handle_collision(self, other, group):
-        pass
+        # Planet의 handle_collision : 동일한 기능을 수행함
+        super().handle_collision(other, group)
+    '''
 
     pass
+
 
 # ------------ 직접 실행시켰을 경우 ------------
 

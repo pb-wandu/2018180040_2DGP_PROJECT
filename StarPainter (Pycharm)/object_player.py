@@ -830,6 +830,11 @@ class Player:
         self.hittime = 20  # 충돌된 후 무적 시간
         pass
 
+    # w키 (반짝임 사용) 이후 일시 무적
+    def afterwskill(self):
+        self.nowinvincible = 1 # 일시 무적
+        self.hittime = frame_game.skillwinvincibletime  # 충돌된 후 무적 시간
+        pass
 
     pass
 
