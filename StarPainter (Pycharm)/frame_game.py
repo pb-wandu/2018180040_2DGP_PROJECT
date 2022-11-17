@@ -25,7 +25,9 @@ DELAYTIME = 0.005   # 지연 시간
 WORLDNUM = 6 # 차원 개수
 PLACENUM = 5 # 각 차원당 장소 개수
 STARSIZE = 30 # 별 크기
+
 OBJSNUMMAX = 6 # 오브젝트 개수 상한
+OBJSNUMMAX2 = 4 # 오브젝트 개수 상한 2
 
 # ------------ 변수들 ------------
 
@@ -153,6 +155,13 @@ def stagecheck(stage):
                 eunbi.handle_collision(stageinfo.planetobjs[i], 'eunbi_planet')
                 stageinfo.planetobjs[i].handle_collision(eunbi, 'eunbi_planet')
 
+    # 위성
+    for i in range(OBJSNUMMAX2):
+        if stageinfo.moonobjs[i] is not None:
+            if collide(eunbi, stageinfo.moonobjs[i]):
+                eunbi.handle_collision(stageinfo.moonobjs[i], 'eunbi_moon')
+                stageinfo.moonobjs[i].handle_collision(eunbi, 'eunbi_moon')
+
     # 현재 모은 별 개수가 현재 차원에서 요구하는 별 개수와 같다면
     if stageinfo.nowcollectedstar == nowstageneedstar:
         return 'cleared'
@@ -203,13 +212,35 @@ def stagedraw(stage):
         y = stageinfo.starplacesset[placessetplace][i][1]
         starplaces[i].draw(x, y)
 
-    stageinfo.planetobjs = [gameobjects.Planet() for i in range(OBJSNUMMAX)]  # 행성들을 저장할 위치
-
+    # 행성
     for i in range(OBJSNUMMAX):
         if stageinfo.planetobjs[i] is not None:
-            stageinfo.planetobjs[i].x = stageinfo.planetplacesset[placessetplace][i][0]
-            stageinfo.planetobjs[i].y = stageinfo.planetplacesset[placessetplace][i][1]
-            stageinfo.planetobjs[i].draw(stageinfo.planetobjs[i].x, stageinfo.planetobjs[i].y)
+            x = stageinfo.planetplacesset[placessetplace][i][0]
+            y = stageinfo.planetplacesset[placessetplace][i][1]
+            stageinfo.planetobjs[i].draw(x, y)
+
+    # 위성
+    for i in range(OBJSNUMMAX2):
+        if stageinfo.moonplacesset[placessetplace][i][0] != stageinfo.UNSET:
+            # 위성 초기화
+            if stageinfo.moonobjs[i].inited is False:
+                stageinfo.moonobjs[i].firstset(
+                    stageinfo.moonplacesset[placessetplace][i][0],
+                    stageinfo.moonplacesset[placessetplace][i][1],
+                    stageinfo.moonplacesset[placessetplace][i][2],
+                    stageinfo.moonplacesset[placessetplace][i][3]
+                )
+                stageinfo.moonobjs[0].inited = True
+
+            # 위성 회전
+            stageinfo.moonobjs[0].rotate += (math.pi * 2) * stageinfo.moonplacesset[placessetplace][0][3]
+
+            # 위성 그리기
+            stageinfo.moonobjs[0].draw_moon(
+                stageinfo.moonplacesset[placessetplace][0][0],
+                stageinfo.moonplacesset[placessetplace][0][1],
+                stageinfo.moonplacesset[placessetplace][0][2]
+            )
 
     # 은비(플레이어) 충돌시 무적상태
     if eunbi.hittime > 0:
@@ -273,6 +304,9 @@ def enter():
     game_world.energyimage = gameobjects.Energyimage() # 기력 이미지
 
     game_world.timeimage = gameobjects.Timeimage() # 시간 이미지
+
+    stageinfo.planetobjs = [gameobjects.Planet() for i in range(OBJSNUMMAX)]  # 행성들을 저장할 위치
+    stageinfo.moonobjs   = [gameobjects.Moon() for i in range(OBJSNUMMAX2)]   # 위성들을 저장할 위치
 
     # [Layer 2] - 은비 (플레이어) 그리기
 

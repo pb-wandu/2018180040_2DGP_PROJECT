@@ -201,29 +201,44 @@ class Planet:
 
 class Moon(Planet):
 
-    '''
     image = None
 
     def __init__(self):
-        super().__init__() # (Planet의 __init__ : 실질적으로 하는 기능은 없음)
+        self.index = frame_main.UNSET
+        self.inited = False  # 초기화 여부
+
         self.x, self.y = frame_main.UNSET, frame_main.UNSET
-        if Planet.image is None:
-            Planet.image = load_image('moonimage.png')
+        self.rotate = 0 # 현재 회전값
+        self.rotateamount = frame_main.UNSET # 회전값
+        self.r = frame_main.UNSET # 공전 반지름
 
-    def draw(self, x, y):
-        # Planet의 draw : 동일한 기능을 수행함
-        super().draw(x, y)
 
-    # 충돌 범위 (상하좌우 3px 보정)
+        if Moon.image is None:
+            Moon.image = load_image('moonimage.png') # <- moonimage로 수정 예정
+
+    def firstset(self, x, y, r, rot):
+        self.x, self.y, self.r, self.rotateamount = x, y, r, rot
+
+    def draw_moon(self, centerx, centery, radius):
+
+        # 공전 기준점에서 떨어진 거리
+        xamount = centerx + radius * math.sin(self.rotate)
+        yamount = centery + radius * math.cos(self.rotate)
+
+        self.rotate = (self.rotate + self.rotateamount) % 360
+
+        # Planet의 draw를 수행
+        super().draw(xamount, yamount)
+        draw_rectangle(*self.gethitarea())
+
+    # 충돌 범위
     def gethitarea(self):
-        # Planet의 gethitarea : 동일한 기능을 수행함
-        super().gethitarea()
+        return self.x-20, self.y+20, self.x+18, self.y-17
 
     # 충돌 처리
     def handle_collision(self, other, group):
         # Planet의 handle_collision : 동일한 기능을 수행함
         super().handle_collision(other, group)
-    '''
 
     pass
 

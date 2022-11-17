@@ -4,6 +4,7 @@
 
 from pico2d import *      # pico2d 라이브러리 import
 import game_framework     # 게임 프레임워크 import
+import math               # 원주율, 삼각함수
 
 UNSET = 999               # 아직 정해지지 않은 것
 
@@ -53,6 +54,7 @@ needtocollectstar = \
 
 starplaces = [None, None, None, None, None, None, None, None, None, None] # 별을 저장할 배열
 planetobjs = [None, None, None, None, None, None, None, None, None, None] # 행성을 저장할 배열
+moonobjs = [None, None, None, None, None, None, None, None, None, None] # 위성을 저장할 배열
 
 stardrawed = [False, False, False, False, False, False, False, False, False, False] # 해당 위치에 별이 그려졌는지 확인
 
@@ -60,7 +62,7 @@ stardrawed = [False, False, False, False, False, False, False, False, False, Fal
 
 # 스테이지 오브젝트 좌표 범위는 [10~670, 200~680]으로 지정합니다
 
-starplacesset = [ # 별을 표시할 위치
+starplacesset = [ # 별을 표시할 위치 [10~670, 200~680]
     [ [100, 500], [500, 240], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET] ], # 1-1
     [ [90, 450], [250, 220], [500, 680], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET] ], # 1-2
     [ [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET] ], # 1-3
@@ -74,11 +76,18 @@ starplacesset = [ # 별을 표시할 위치
     [[UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET]],  # 2-5
 ]
 
-planetplacesset = [ # 행성을 표시할 위치
+planetplacesset = [ # 행성을 표시할 위치 (x, y) [10~670, 200~680]
     # 1-1
     [[300, 480], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET]],
     # 1-2
     [[UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET]]
+]
+
+moonplacesset = [ # 달을 표시할 위치 (x, y, 공전 반지름, 회전 각속도) [10~670, 200~680]
+    # 1-1
+    [[40, 240, 120, 0.01], [UNSET, UNSET, UNSET, UNSET], [UNSET, UNSET, UNSET, UNSET], [UNSET, UNSET, UNSET, UNSET]],
+    # 1-2
+    [[UNSET, UNSET, UNSET, UNSET], [UNSET, UNSET, UNSET, UNSET], [UNSET, UNSET, UNSET, UNSET], [UNSET, UNSET, UNSET, UNSET]]
 ]
 
 
