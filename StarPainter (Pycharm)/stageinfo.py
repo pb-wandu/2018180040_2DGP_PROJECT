@@ -7,15 +7,40 @@ import game_framework     # 게임 프레임워크 import
 
 UNSET = 999               # 아직 정해지지 않은 것
 
-# ------------ 스테이지 관련 변수들 ------------
+# ------------ 스테이지 관련 변수, 상수 ------------
 
 nowgamestage = 11 # 현재 스테이지
 nowcollectedstar = 0 # 현재 모은 별 (이 해당 스테이지의 요구 별 개수와 같다면 스테이지 클리어
 
-nowlifelength = 0  # 전체 제력 대비 현재 체력
-nowenergylength = 0  # 전체 기력 대비 현재 기력
+nowlifelength = 0  # 전체 제력 대비 현재 체력 표시 길이
+nowenergylength = 0  # 전체 기력 대비 현재 기력 표시 길이
 lifeimageadjust = 0 # 왼쪽으로 정렬 이동값
 energyimageadjust = 0 # 왼쪽으로 정렬 이동값
+
+nowtimelength = 0 # 전체 시간 대비 현재 남은 시간 표시 길이
+timeimageadjust = 0 # 왼쪽으로 정렬 이동값
+TIMEMAX = 100 # 한 스테이지당 시간 (초 단위 아님)
+
+# 각 스테이지별 시간 줄어드는 속도
+
+timespd = \
+    [[0.12, 0.13, 0.14, 0.15, 0.16],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET]]
+
+# 각 스테이지별 시간 줄어드는 속도 (어려움 난이도) // 난이도 구분할 때 적용 예정
+# 제작자 본인이 이 속도로 클리어 가능한 정도 안에서 적당히 적용합니다
+
+timespd_promode = \
+    [[0.75, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET],
+    [UNSET, UNSET, UNSET, UNSET, UNSET]]
 
 # 각 차원-지역 (스테이지)당 필요한 별 개수 (== 그려야 하는 목표지점)
 needtocollectstar = \

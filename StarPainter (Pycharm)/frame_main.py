@@ -16,16 +16,24 @@ WINDOWYSIZE = 700   # 화면 y 크기
 UNSET = 999         # 아직 정해지지 않은 것
 DELAYTIME = 0.005   # 지연 시간
 
-# ------------ 변수들 ------------
+BTNSIZEX, BTNSIZEY = 260, 100 # 버튼 크기
+
+# ------------ 변수들, 사용자 지정 함수 ------------
 
 imagebg = None # 배경 이미지
 
-mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
 mousepressed = 0 # 마우스 클릭한 여부
 
 PL_MAIN, PL_INFO, PL_STAGE, PL_PAUSE, PL_UPGRADE = 10, 11, 20, 21, 30
 
 nowplace = UNSET
+
+# 내부에 있는지 확인하는 함수
+def ifinsidesq(sql, sqr, sqd, squ, x, y):
+    if sql <= x <= sqr and sqd <= y <= squ:
+        return True
+    else:
+        return False
 
 # ------------ 게임 프레임워크 동작들 ------------
 
@@ -62,7 +70,6 @@ def update():
 def handle_events():
     events = get_events()
 
-    global mouseclickedx, mouseclickedy  # 마우스 클릭한 x좌표, y좌표
     global mousepressed  # 마우스 클릭한 여부
 
     for event in events:
@@ -91,7 +98,27 @@ def handle_events():
         # 마우스 눌렀을 때
         elif event.type == SDL_MOUSEBUTTONDOWN:
             # x, y 좌표 지정
-            mouseclickedx, mouseclickedy = event.x, WINDOWXSIZE - 1 - event.y
+            x, y = event.x, WINDOWYSIZE - 1 - event.y
+
+            # 마우스 누른 위치와 버튼 위치 비교
+
+            # 게임 시작 버튼
+            if ifinsidesq(150 - BTNSIZEX / 2, 150 + BTNSIZEX / 2, 70 - BTNSIZEY / 2, 70 + BTNSIZEY / 2, x, y):
+                game_framework.change_state(frame_game)
+                delay(DELAYTIME)
+                pass
+
+            # 게임 정보 버튼
+            elif ifinsidesq(430 - BTNSIZEX / 2, 430 + BTNSIZEX / 2, 70 - BTNSIZEY / 2, 70 + BTNSIZEY / 2, x, y):
+                game_framework.push_state(frame_info)
+                delay(DELAYTIME)
+                pass
+
+            # 게임 종료 버튼
+            elif ifinsidesq(710 - BTNSIZEX / 2, 710 + BTNSIZEX / 2, 70 - BTNSIZEY / 2, 70 + BTNSIZEY / 2, x, y):
+                game_framework.quit()
+                pass
+
 
         # 마우스 떼었을 때
         elif event.type == SDL_MOUSEBUTTONUP:

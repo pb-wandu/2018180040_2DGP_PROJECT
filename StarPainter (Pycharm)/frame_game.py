@@ -87,7 +87,10 @@ skillqneedenergypercent = 40 # 순간이동 사용시 기력 요구 퍼센트
 
 # 스테이지 확인
 
+nowlefttime = UNSET # 남은 시간 (초 단위 아님)
+
 def stagecheck(stage):
+    global nowlefttime
 
     global nowdrawing  # 현재 그림 그리고 있는지 여부
 
@@ -102,6 +105,16 @@ def stagecheck(stage):
     stageinfo.nowenergylength = 120 * eunbi.energynow / eunbi.energymax # 전체 기력 대비 현재 기력
     stageinfo.lifeimageadjust = (120 - stageinfo.nowlifelength) / 2 # 왼쪽으로 정렬 이동값
     stageinfo.energyimageadjust = (120 - stageinfo.nowenergylength) / 2 # 왼쪽으로 정렬 이동값
+
+    # 시간 정보 관리
+
+    stageinfo.nowtimelength = 160 * nowlefttime / stageinfo.TIMEMAX  # 100초 중에 현재 남은 시간만큼 표시
+    stageinfo.timeimageadjust = (160 - stageinfo.nowtimelength) / 2  # 왼쪽으로 정렬 이동값
+
+    nowlefttime -= stageinfo.timespd[worldnow-1][placenow-1] # 시간 깎이는 속도
+    if nowlefttime <= 0: # 시간이 0 이하로 떨어졌을 경우
+        # 메인 메뉴로 이동
+        game_framework.change_state(frame_main)
 
     # starplacesset에서 현재 스테이지 좌표가 있는 위치
     starplacessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
@@ -216,6 +229,9 @@ def enter():
 
     global skill2usingimg
 
+    global nowlefttime
+    nowlefttime = 100  # 남은 시간 (초 단위 아님)
+
     # 별 그린 것 초기화
     for i in range(10):
         stageinfo.stardrawed[i] = False
@@ -224,7 +240,8 @@ def enter():
     # 현위치 지정
     frame_main.nowplace = frame_main.PL_STAGE
 
-    handle_events() # 이벤트 핸들러
+    # 이벤트 핸들러
+    handle_events()
 
     # 오브젝트 생성 및 초기화
 
@@ -251,6 +268,8 @@ def enter():
     game_world.lifeimage = gameobjects.Lifeimage() # 체력 이미지
     game_world.energyimage = gameobjects.Energyimage() # 기력 이미지
 
+    game_world.timeimage = gameobjects.Timeimage() # 시간 이미지
+
     # [Layer 2] - 은비 (플레이어) 그리기
 
     game_world.add_object(eunbi, 2) # 은비(플레이어)
@@ -273,6 +292,7 @@ def enter():
     game_world.add_object(game_world.lifeenergybar, 0) # 체력, 기력 바탕 이미지
     game_world.add_object(game_world.lifeimage, 0) # 체력 이미지
     game_world.add_object(game_world.energyimage, 0) # 기력 이미지
+    game_world.add_object(game_world.timeimage, 0)  # 시간 이미지
 
     # 충돌 대상 정보 등록
     # ### 게임 월드를 이용한 처리가 안 되어 임시방편으로 코드 짠 상태 - 수정 예정
@@ -347,6 +367,12 @@ def draw():
             game_object.draw(150 - stageinfo.lifeimageadjust, 82, int(stageinfo.nowlifelength))
         elif game_object == game_world.energyimage:
             game_object.draw(150 - stageinfo.energyimageadjust, 38, int(stageinfo.nowenergylength))
+
+    # 시간 이미지 (임시)
+
+    game_world.timeimage.draw(900 - stageinfo.timeimageadjust, 359, int(stageinfo.nowtimelength))
+    timebarimg = load_image('timebar.png')
+    timebarimg.draw(900, 359)
 
     # 잠근 기술 위에 잠김 이미지 표시하기
 
@@ -507,8 +533,11 @@ def pause():
 # 다시 실행된 경우
 def resume():
 
-    # 저장해둔 은비 좌표 불러오기
-    eunbi.x, eunbi.y = playersavex, playersavey
+    # 현위치 지정
+    frame_main.nowplace = frame_main.PL_STAGE
+
+    # 이벤트 핸들러
+    handle_events()
 
     pass
 

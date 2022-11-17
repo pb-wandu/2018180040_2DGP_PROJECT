@@ -62,9 +62,9 @@ def frame_game_events():
         elif (event.type, event.key) == (SDL_KEYUP, SDLK_3):
             frame_game.skillwlocked = 1 - frame_game.skillwlocked
 
-        # F2 F3키는 테스트용으로, 각각 이전, 다음 스테이지 이동키입니다
+        # F9, F10키는 테스트용으로, 각각 이전, 다음 스테이지 이동키입니다
 
-        elif (event.type, event.key) == (SDL_KEYUP, SDLK_F2):
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_F9):
             stageinfo.nowcollectedstar = 0  # 모은 별 개수 초기화
             stageinfo.ifstagedrawed = 0  # 스테이지 그려짐 여부 초기화
 
@@ -75,7 +75,7 @@ def frame_game_events():
                 else:
                     stageinfo.nowgamestage -= 1  # 이전 지역으로
 
-        elif (event.type, event.key) == (SDL_KEYUP, SDLK_F3):
+        elif (event.type, event.key) == (SDL_KEYUP, SDLK_F10):
             stageinfo.nowcollectedstar = 0  # 모은 별 개수 초기화
             stageinfo.ifstagedrawed = 0  # 스테이지 그려짐 여부 초기화
 

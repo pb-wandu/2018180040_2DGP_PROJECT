@@ -11,6 +11,8 @@ import game_framework     # 게임 프레임워크 임포트
 import frame_game         # 게임 메뉴 변수들 사용
 import frame_main         # 메인 메뉴 상수들 사용
 
+import math               # 삼각함수
+
 # ------------ 오브젝트 클래스들 ------------
 
 # 발판 오브젝트
@@ -152,6 +154,21 @@ class Energyimage:
 
     pass
 
+# 시간 표시
+
+class Timeimage:
+    image = None
+
+    def __init__(self):
+        if Timeimage.image is None:
+            Timeimage.image = load_image('Timeimage.png')
+            self.frame = 0  # 애니메이션 프레임
+
+    def draw(self, x, y, drawl):
+        self.image.clip_draw(0, 0, drawl, 30, x, y)
+
+    pass
+
 # ------------ 장애물, 적 오브젝트 클래스들 ------------
 
 # 장애물 - 행성
@@ -180,7 +197,31 @@ class Planet:
 
     pass
 
+# 장애물 -
 
+class Planet:
+    image = None
+
+    def __init__(self):
+        self.x, self.y = frame_main.UNSET, frame_main.UNSET
+        if Planet.image is None:
+            Planet.image = load_image('planetimage.png')
+
+
+    def draw(self, x, y):
+        self.image.draw(x, y)
+        self.x, self.y = x, y
+        draw_rectangle(*self.gethitarea())
+
+    # 충돌 범위 (상하좌우 3px 보정)
+    def gethitarea(self):
+        return self.x-32, self.y+27, self.x+32,self.y-27
+
+    # 충돌 처리
+    def handle_collision(self, other, group):
+        pass
+
+    pass
 
 # ------------ 직접 실행시켰을 경우 ------------
 
