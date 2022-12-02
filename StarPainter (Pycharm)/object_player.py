@@ -874,6 +874,7 @@ def effectsdraw(self):
         elif self.nowstate == frame_game.RIGHTDRAWING:
             frame_game.draweffect.draw(self.x + 15, self.y + 17)
 
+# 애니메이션 그리기
 
 def animationshow(self):
     if frame_game.nowdashr == 1:  # 오른쪽 도약 실행시

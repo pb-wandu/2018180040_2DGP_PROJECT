@@ -7,28 +7,97 @@ import game_framework     # 게임 프레임워크 import
 
 import frame_main         # 메인 메뉴
 import frame_game         # 게임 메뉴
+import frame_info         # 정보 메뉴
 import frame_upgrade      # 별그림자 회랑
 import frame_pause        # 대기 전환
 
 import stageinfo          # 스테이지 관련 변수, 함수
 
-UNSET = 999               # 아직 정해지지 않은 것
+UNSET = 999                     # 아직 정해지지 않은 것
+BTNSIZEX, BTNSIZEY = 260, 100   # 버튼 크기
 
-# ------------ 컨트롤 관련 변수들 ------------
+# ------------ 컨트롤 관련 변수, 함수 ------------
 
 # 키 각각 입력 여부
 keypressedleft, keypressedright, keypressedup, keypresseddown = 0, 0, 0, 0
 keypressedz, keypressedq, keypressedw = 0, 0, 0
 
-mousex, mousey = UNSET, UNSET # 마우스 x좌표, y좌표
+mousex, mousey = UNSET, UNSET               # 마우스 x좌표, y좌표
 mouseclickedx, mouseclickedy = UNSET, UNSET # 마우스 클릭한 x좌표, y좌표
 
 keypressing = 0    # 키보드 입력중 여부
 mousepressed = 0   # 마우스 클릭한 여부
 
+# 내부에 있는지 확인하는 함수
+def ifinsidesq(sql, sqr, sqd, squ, x, y):
+    if sql <= x <= sqr and sqd <= y <= squ:
+        return True
+    else:
+        return False
+
 # ------------ 메뉴별 키 입력 이벤트 ------------
 
-# 게임 메뉴
+# ----- 메인 메뉴 -----
+
+def frame_main_events():
+
+    events = get_events()
+
+    global mousepressed  # 마우스 클릭한 여부
+
+    for event in events:
+
+        # 종료일 때
+        if event.type == SDL_QUIT:
+            game_framework.quit()
+
+        # 키를 눌렀을 때
+        elif event.type == SDL_KEYUP:
+
+            # F1키를 누를 경우 정보 메뉴 열기
+            if event.key == SDLK_F1:
+                game_framework.push_state(frame_info)
+                delay(frame_main.DELAYTIME)
+
+            # enter키를 누를 경우 게임 메뉴로 이동
+            if event.key == SDLK_RETURN:
+                game_framework.change_state(frame_game)
+                delay(frame_main.DELAYTIME)
+
+            # esc키를 누를 경우 게임 종료
+            if event.key == SDLK_ESCAPE:
+                game_framework.quit()
+
+        # 마우스 눌렀을 때
+        elif event.type == SDL_MOUSEBUTTONDOWN:
+            # x, y 좌표 지정
+            x, y = event.x, frame_main.WINDOWYSIZE - 1 - event.y
+
+            # 마우스 누른 위치와 버튼 위치 비교
+
+            # 게임 시작 버튼
+            if ifinsidesq(150 - BTNSIZEX / 2, 150 + BTNSIZEX / 2, 70 - BTNSIZEY / 2, 70 + BTNSIZEY / 2, x, y):
+                game_framework.change_state(frame_game)
+                delay(frame_main.DELAYTIME)
+                pass
+
+            # 게임 정보 버튼
+            elif ifinsidesq(430 - BTNSIZEX / 2, 430 + BTNSIZEX / 2, 70 - BTNSIZEY / 2, 70 + BTNSIZEY / 2, x, y):
+                game_framework.push_state(frame_info)
+                delay(frame_main.DELAYTIME)
+                pass
+
+            # 게임 종료 버튼
+            elif ifinsidesq(710 - BTNSIZEX / 2, 710 + BTNSIZEX / 2, 70 - BTNSIZEY / 2, 70 + BTNSIZEY / 2, x, y):
+                game_framework.quit()
+                pass
+
+
+        # 마우스 떼었을 때
+        elif event.type == SDL_MOUSEBUTTONUP:
+            mousepressed = 1
+
+# ----- 게임 메뉴 -----
 
 def frame_game_events():
     global keypressedleft, keypressedright, keypressedup, keypresseddown
@@ -139,7 +208,7 @@ def frame_game_events():
         else:
             frame_game.eunbi.handle_event(event)
 
-# 별그림자 회랑
+# ----- 별그림자 회랑 (강화 메뉴) -----
 
 def frame_upgrade_events():
 

@@ -22,12 +22,14 @@ WINDOWYSIZE = 700   # 화면 y 크기
 UNSET = 999         # 아직 정해지지 않은 것
 DELAYTIME = 0.005   # 지연 시간
 
-WORLDNUM = 6 # 차원 개수
-PLACENUM = 5 # 각 차원당 장소 개수
-STARSIZE = 30 # 별 크기
+WORLDNUM = 6        # 차원 개수
+PLACENUM = 5        # 각 차원당 장소 개수
+STARSIZE = 30       # 별 크기
 
-OBJSNUMMAX = 6 # 오브젝트 개수 상한
-OBJSNUMMAX2 = 4 # 오브젝트 개수 상한 2
+OBJSNUMMAX = 6      # 오브젝트 개수 상한
+OBJSNUMMAX2 = 4     # 오브젝트 개수 상한 2
+
+LEFTTIME = 100      # 스테이지당 제한시간 (초 단위 아님)
 
 # ------------ 변수들 ------------
 
@@ -73,21 +75,19 @@ nowqstate = 0 # q (순간이동) 기술 사용중 여부
 
 # 별그림자 회랑에서 강화 가능한 값들 (// 수시로 수정하며 확인합니다)
 
-dashtime = 40 # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
-skillmovecooltime = 60 # 현재 도약 대기시간
-dashamount = 50 # 도약 크기
+dashtime = 50                 # 이 시간 안에 같은 키를 다시 누르면 도약을 수행
+skillmovecooltime = 60        # 현재 도약 대기시간
+dashamount = 50               # 도약 크기
+skillmoveneedenergy = 50      # 도약 사용시 기력 요구치
+skillqneedenergypercent = 40  # 순간이동 사용시 기력 요구 퍼센트
 
-skillmoveneedenergy = 50 # 도약 사용시 기력 요구치
-skillqneedenergypercent = 40 # 순간이동 사용시 기력 요구 퍼센트
+nowskillmovecooltime = 0      # 도약 대기시간
+nowskillqcooltime = 0         # 현재 순간이동 대기시간
+skillqcooltime = 150          # 순간이동 대기시간
 
-nowskillmovecooltime = 0  # 도약 대기시간
-
-nowskillqcooltime = 0  # 현재 순간이동 대기시간
-skillqcooltime = 150  # 순간이동 대기시간
-
-nowskillwcooltime = 0 # 현재 반짝임 (일시 무적) 대기시간
-skillwcooltime = 200 # 반짝임 (일시 무적) 대기시간
-skillwinvincibletime = 30 # 일시 무적시 무적시간
+nowskillwcooltime = 0         # 현재 반짝임 (일시 무적) 대기시간
+skillwcooltime = 200          # 반짝임 (일시 무적) 대기시간
+skillwinvincibletime = 30     # 일시 무적시 무적시간
 
 # ------------ 스테이지 관리 함수 ------------
 
@@ -105,17 +105,14 @@ def stagecheck(stage):
     worldnow = int(stage / 10)  # 현재 차원
     placenow = stage % 10  # 현재 장소
 
-    # 체력, 기력 정보 관리
+    # 체력, 기력, 시간 정보 관리
 
-    stageinfo.nowlifelength = 120 * eunbi.lifenow / eunbi.lifemax # 전체 제력 대비 현재 체력
-    stageinfo.nowenergylength = 120 * eunbi.energynow / eunbi.energymax # 전체 기력 대비 현재 기력
-    stageinfo.lifeimageadjust = (120 - stageinfo.nowlifelength) / 2 # 왼쪽으로 정렬 이동값
-    stageinfo.energyimageadjust = (120 - stageinfo.nowenergylength) / 2 # 왼쪽으로 정렬 이동값
-
-    # 시간 정보 관리
-
-    stageinfo.nowtimelength = 160 * nowlefttime / stageinfo.TIMEMAX  # 100초 중에 현재 남은 시간만큼 표시
-    stageinfo.timeimageadjust = (160 - stageinfo.nowtimelength) / 2  # 왼쪽으로 정렬 이동값
+    stageinfo.nowlifelength = 120 * eunbi.lifenow / eunbi.lifemax        # 전체 제력 대비 현재 체력
+    stageinfo.nowenergylength = 120 * eunbi.energynow / eunbi.energymax  # 전체 기력 대비 현재 기력
+    stageinfo.lifeimageadjust = (120 - stageinfo.nowlifelength) / 2      # 왼쪽으로 정렬 이동값
+    stageinfo.energyimageadjust = (120 - stageinfo.nowenergylength) / 2  # 왼쪽으로 정렬 이동값
+    stageinfo.nowtimelength = 160 * nowlefttime / stageinfo.TIMEMAX      # 100초 중에 현재 남은 시간만큼 표시
+    stageinfo.timeimageadjust = (160 - stageinfo.nowtimelength) / 2      # 왼쪽으로 정렬 이동값
 
     nowlefttime -= stageinfo.timespd[worldnow-1][placenow-1] # 시간 깎이는 속도
     if nowlefttime <= 0: # 시간이 0 이하로 떨어졌을 경우
@@ -128,6 +125,7 @@ def stagecheck(stage):
     nowstageneedstar = stageinfo.needtocollectstar[worldnow - 1][placenow - 1]  # 현재 스테이지에서 필요한 별
     stageinfo.starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]  # 별들을 저장할 위치
 
+    # 별 위치에 따라 표시
     for i in range(nowstageneedstar):
 
         x, y = stageinfo.starplacesset[starplacessetplace][i][0], stageinfo.starplacesset[starplacessetplace][i][1]
@@ -149,27 +147,35 @@ def stagecheck(stage):
                 nowdrawing = 0
                 stageinfo.nowcollectedstar += 1  # 별을 하나 그림
 
+    # 은비와 행성 충돌시
     for i in range(OBJSNUMMAX):
+        # 빈 오브젝트가 아니고 충돌시
         if stageinfo.planetobjs[i] is not None:
             if collide(eunbi, stageinfo.planetobjs[i]):
-                eunbi.handle_collision(stageinfo.planetobjs[i], 'eunbi_planet')
-                stageinfo.planetobjs[i].handle_collision(eunbi, 'eunbi_planet')
+                # 각 오브젝트의 충돌시 동작 수행
+                eunbi.handle_collision(stageinfo.planetobjs[i], 'Eunbi_planet')
+                stageinfo.planetobjs[i].handle_collision(eunbi, 'Eunbi_planet')
 
-    # 위성
+    # 은비와 위성 충돌시
     for i in range(OBJSNUMMAX2):
+        # 빈 오브젝트가 아니고 충돌시
         if stageinfo.moonobjs[i] is not None:
             if collide(eunbi, stageinfo.moonobjs[i]):
-                eunbi.handle_collision(stageinfo.moonobjs[i], 'eunbi_moon')
-                stageinfo.moonobjs[i].handle_collision(eunbi, 'eunbi_moon')
+                # 각 오브젝트의 충돌시 동작 수행
+                eunbi.handle_collision(stageinfo.moonobjs[i], 'Eunbi_moon')
+                stageinfo.moonobjs[i].handle_collision(eunbi, 'Eunbi_moon')
 
     # 현재 모은 별 개수가 현재 차원에서 요구하는 별 개수와 같다면
     if stageinfo.nowcollectedstar == nowstageneedstar:
+        # '스테이지 클리어'를 값으로 반환
         return 'cleared'
 
-    # 은비(플레이어) 충돌시 무적상태
+    # eunbi.hittime이 0보다 크면 현재 무적상태
     if eunbi.hittime > 0:
         eunbi.hittime -= 1
     else:
+        # eunbi.hittime이 0이 되었다면 무적상태 해제
+        eunbi.hittime = 0
         eunbi.nowinvincible = 0
 
     # 체력이 0 이하이면 시작 메뉴로 이동
@@ -183,11 +189,10 @@ def stagecheck(stage):
 
 def stagedraw(stage):
 
-    global nowdrawing  # 현재 그림 그리고 있는지 여부
-
+    global nowdrawing           # 현재 그림 그리고 있는지 여부
 
     worldnow = int(stage / 10)  # 현재 차원
-    placenow = stage % 10  # 현재 장소
+    placenow = stage % 10       # 현재 장소
 
     # 글자 표시
     stagefont = load_font('WLR-1_Yeongyeon_v1_3.TTF', 16)
@@ -198,15 +203,18 @@ def stagedraw(stage):
     # 현재 스테이지 좌표가 있는 위치
     placessetplace = (worldnow - 1) * PLACENUM + (placenow - 1)
 
-    nowstageneedstar = stageinfo.needtocollectstar[worldnow - 1][placenow - 1] # 현재 스테이지에서 필요한 별
-    starplaces = [gameobjects.Star() for i in range(nowstageneedstar)] # 별들을 저장할 위치
+    nowstageneedstar = stageinfo.needtocollectstar[worldnow - 1][placenow - 1] # 현재 스테이지에서 필요한 별 개수
+    starplaces = [gameobjects.Star() for i in range(nowstageneedstar)]         # 별들을 저장할 위치
 
+    # 별
     for i in range(nowstageneedstar):
 
         if stageinfo.stardrawed[i]:
             starplaces[i].ifdraw = True
         else:
             starplaces[i].ifdraw = False
+
+        # 별 위치에 별 그리기
 
         x = stageinfo.starplacesset[placessetplace][i][0]
         y = stageinfo.starplacesset[placessetplace][i][1]
@@ -257,15 +265,17 @@ def enter():
     global ground
     global drawnowstage
     global pauseimage
-
     global skill1image, skill2image, skill3image
-
     global jumpeffect, wingimage, quickmove, draweffect
-
     global skill2usingimg
 
-    global nowlefttime
-    nowlefttime = 100  # 남은 시간 (초 단위 아님)
+    global nowlefttime           # 현재 남은 시간 (초 단위 아님)
+    global nowskillmovecooltime  # 도약 대기시간
+    global nowskillwcooltime     # 현재 반짝임 (일시 무적) 대기시간
+
+    nowlefttime = LEFTTIME       # 현재 남은 시간 (초 단위 아님)
+    nowskillmovecooltime = 0     # 도약 대기시간
+    nowskillwcooltime = 0        # 현재 반짝임 (일시 무적) 대기시간
 
     # 별 그린 것 초기화
     for i in range(10):
@@ -278,63 +288,70 @@ def enter():
     # 이벤트 핸들러
     handle_events()
 
-    # 오브젝트 생성 및 초기화
-
-    imagebg = load_image('gamemenuimg.png')  # 배경 이미지
-    imagestagebg = load_image('stagebg.png')  # 스테이지 배경 이미지
-
-    skill2usingimg = load_image('skill2usingimg.png') # q (순간이동) 사용중 이미지
-
-    ground = gameobjects.Ground()  # 발판 오브젝트
-    drawnowstage = gameobjects.Drawnowstage()  # 스테이지 표시 오브젝트
+    # [Layer 2] - 은비 (플레이어) 그리기
 
     eunbi = object_player.Player()  # 별그림자 은비 (플레이어 오브젝트)
+
+    game_world.add_object(eunbi, 2) # 은비(플레이어)
 
     jumpeffect = object_player.Jumpeffect()  # 점프 효과 오브젝트
     wingimage = object_player.Wingimage()  # 날개 오브젝트
     quickmove = object_player.Quickmove()  # 동작 효과 표시
     draweffect = object_player.Draweffect()  # 그리기 효과 오브젝트
 
-    skill1image = gameobjects.Skill1image() # 동작 실행 가능여부 표시
-    skill2image = gameobjects.Skill2image()  # 동작 실행 가능여부 표시
-    skill3image = gameobjects.Skill3image()  # 동작 실행 가능여부 표시
-
-    game_world.lifeenergybar = gameobjects.Lifeenergybar() # 체력, 기력 바탕 이미지
-    game_world.lifeimage = gameobjects.Lifeimage() # 체력 이미지
-    game_world.energyimage = gameobjects.Energyimage() # 기력 이미지
-
-    game_world.timeimage = gameobjects.Timeimage() # 시간 이미지
-
-    stageinfo.planetobjs = [gameobjects.Planet() for i in range(OBJSNUMMAX)]  # 행성들을 저장할 위치
-    stageinfo.moonobjs   = [gameobjects.Moon() for i in range(OBJSNUMMAX2)]   # 위성들을 저장할 위치
-
-    # [Layer 2] - 은비 (플레이어) 그리기
-
-    game_world.add_object(eunbi, 2) # 은비(플레이어)
+    game_world.add_object(jumpeffect, 2)  # 점프 효과 오브젝트
+    game_world.add_object(wingimage, 2)  # 날개 오브젝트
+    game_world.add_object(quickmove, 2)  # 동작 효과 표시
+    game_world.add_object(draweffect, 2)  # 그리기 효과 오브젝트
 
     # [Layer 1] - Stage 관련 이미지들
 
+    ground               = gameobjects.Ground()                               # 발판 오브젝트
+    stageinfo.planetobjs = [gameobjects.Planet() for i in range(OBJSNUMMAX)]  # 행성들을 저장할 위치
+    stageinfo.moonobjs   = [gameobjects.Moon() for i in range(OBJSNUMMAX2)]   # 위성들을 저장할 위치
+
     game_world.add_object(ground, 1) # 발판 오브젝트
+    game_world.add_object(stageinfo.planetobjs, 1)  # 행성 오브젝트
+    game_world.add_object(stageinfo.moonobjs, 1)  # 위성 오브젝트
 
     # [Layer 0] - 기타 이미지들
+
+    imagebg = load_image('gamemenuimg.png')  # 배경 이미지
+    imagestagebg = load_image('stagebg.png')  # 스테이지 배경 이미지
 
     game_world.add_object(imagebg, 0) # 배경 이미지
     game_world.add_object(imagestagebg, 0) # 스테이지 배경 이미지
 
+    drawnowstage = gameobjects.Drawnowstage()  # 스테이지 표시 오브젝트
+
     game_world.add_object(drawnowstage, 0) # 스테이지 표시 오브젝트
+
+    skill1image = gameobjects.Skill1image() # 동작 실행 가능여부 표시
+    skill2image = gameobjects.Skill2image()  # 동작 실행 가능여부 표시
+    skill3image = gameobjects.Skill3image()  # 동작 실행 가능여부 표시
 
     game_world.add_object(skill1image, 0) # 동작 실행 가능여부 표시
     game_world.add_object(skill2image, 0) # 동작 실행 가능여부 표시
     game_world.add_object(skill3image, 0) # 동작 실행 가능여부 표시
+
+    game_world.lifeenergybar = gameobjects.Lifeenergybar() # 체력, 기력 바탕 이미지
+    game_world.lifeimage = gameobjects.Lifeimage() # 체력 이미지
+    game_world.energyimage = gameobjects.Energyimage() # 기력 이미지
+    game_world.timeimage = gameobjects.Timeimage() # 시간 이미지
 
     game_world.add_object(game_world.lifeenergybar, 0) # 체력, 기력 바탕 이미지
     game_world.add_object(game_world.lifeimage, 0) # 체력 이미지
     game_world.add_object(game_world.energyimage, 0) # 기력 이미지
     game_world.add_object(game_world.timeimage, 0)  # 시간 이미지
 
+    skill2usingimg = load_image('skill2usingimg.png')  # q (순간이동) 사용중 이미지
+
+    game_world.add_object(skill2usingimg, 0) # q (순간이동) 사용중 이미지
+
     # 충돌 대상 정보 등록
-    # ### 게임 월드를 이용한 처리가 안 되어 임시방편으로 코드 짠 상태 - 수정 예정
-    # game_world.add_collision_pairs(eunbi, planetobjs, "eunbi_planetobjs") # 은비(플레이어)와 행성
+
+    game_world.add_collision_pairs(eunbi, stageinfo.planetobjs, "Eunbi_planetobjs")  # 은비(플레이어)와 행성
+    game_world.add_collision_pairs(eunbi, stageinfo.moonobjs, "Eunbi_moonobjs")      # 은비(플레이어)와 위성
 
     pass
 
@@ -446,10 +463,9 @@ def update():
     # 충돌 확인 및 처리
     for a, b, group in game_world.all_collision_pairs():
         if collide(a, b):
-            print("Collision ", group)
+            print("### Collision :", group)
             a.handle_collision(b, group)
             b.handle_collision(a, group)
-
 
     global skill1image, skill2image, skill3image # 기술 이미지
 

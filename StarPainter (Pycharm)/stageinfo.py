@@ -10,17 +10,17 @@ UNSET = 999               # 아직 정해지지 않은 것
 
 # ------------ 스테이지 관련 변수, 상수 ------------
 
-nowgamestage = 11 # 현재 스테이지
-nowcollectedstar = 0 # 현재 모은 별 (이 해당 스테이지의 요구 별 개수와 같다면 스테이지 클리어
+nowgamestage = 11      # 현재 스테이지
+nowcollectedstar = 0   # 현재 모은 별 (이 해당 스테이지의 요구 별 개수와 같다면 스테이지 클리어
 
-nowlifelength = 0  # 전체 제력 대비 현재 체력 표시 길이
-nowenergylength = 0  # 전체 기력 대비 현재 기력 표시 길이
-lifeimageadjust = 0 # 왼쪽으로 정렬 이동값
-energyimageadjust = 0 # 왼쪽으로 정렬 이동값
+nowlifelength = 0      # 전체 제력 대비 현재 체력 표시 길이
+nowenergylength = 0    # 전체 기력 대비 현재 기력 표시 길이
+lifeimageadjust = 0    # 왼쪽으로 정렬 이동값
+energyimageadjust = 0  # 왼쪽으로 정렬 이동값
 
-nowtimelength = 0 # 전체 시간 대비 현재 남은 시간 표시 길이
-timeimageadjust = 0 # 왼쪽으로 정렬 이동값
-TIMEMAX = 100 # 한 스테이지당 시간 (초 단위 아님)
+nowtimelength = 0      # 전체 시간 대비 현재 남은 시간 표시 길이
+timeimageadjust = 0    # 왼쪽으로 정렬 이동값
+TIMEMAX = 100          # 한 스테이지당 시간 (초 단위 아님)
 
 # 각 스테이지별 시간 줄어드는 속도 // 수정중
 
@@ -83,7 +83,7 @@ planetplacesset = [ # 행성을 표시할 위치 (x, y) [10~670, 200~680]
     [[UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET], [UNSET, UNSET]]
 ]
 
-moonplacesset = [ # 달을 표시할 위치 (x, y, 공전 반지름, 회전 각속도) [10~670, 200~680]
+moonplacesset = [ # 달을 표시할 위치 (x, y, 공전 반지름, 회전 각속도(라디안)) [10~670, 200~680]
     # 1-1
     [[40, 240, 120, 0.01], [UNSET, UNSET, UNSET, UNSET], [UNSET, UNSET, UNSET, UNSET], [UNSET, UNSET, UNSET, UNSET]],
     # 1-2
