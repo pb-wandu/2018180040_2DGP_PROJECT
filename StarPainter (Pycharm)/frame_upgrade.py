@@ -3,6 +3,8 @@
 # ------------ import 파일들 ------------
 
 from pico2d import *      # pico2d 라이브러리 import
+
+import bgmplay
 import game_framework     # 게임 프레임워크 import
 
 import frame_main         # main의 변수들 import
@@ -15,12 +17,25 @@ import control            # 컨트롤 관련 변수, 함수
 
 upgradeimage = None
 
+class BGM:
+    bgm = None
+
+    def __init__(self):
+        self.bgm = load_music('BGM2 - Our Heart in Starlight.wav')
+        self.bgm.set_volume(32)
+        self.bgm.repeat_play()
+
 # ------------ 게임 프레임워크 동작들 ------------
 
 # 메뉴 진입
 def enter():
     global upgradeimage
     upgradeimage = load_image('upgradeimg.png')  # 일시정지 이미지
+
+    # 배경음악
+    if bgmplay.nowbgm != bgmplay.BGMUPGRADE:
+        bgmplay.nowbgm = bgmplay.BGMUPGRADE
+        bgmplay.bgm = BGM()  # 배경음악 클래스 실행
 
     # 현위치 지정
     frame_main.nowplace = frame_main.PL_UPGRADE

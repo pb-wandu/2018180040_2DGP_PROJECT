@@ -12,6 +12,8 @@ import frame_game         # 게임 메뉴 변수들 사용
 import frame_main         # 메인 메뉴 변수들 사용
 import control            # 컨트롤 관련 변수, 함수
 
+import bgmplay            # 배경음 재생 관련
+
 # ------------ 은비(플레이어) 관련 변수들 ------------
 
 YMINSPD = -14.0  # y속도 하한
@@ -154,6 +156,7 @@ class IDLE:  # 플레이어 정지 동작
 
         # 땅 위에 있을 경우
         if self.y < 130:
+            frame_game.wingimage.sound = None
             self.y = 130
             self.yspd = 0
 
@@ -322,6 +325,7 @@ class WALK:  # 플레이어 이동 동작
 
         # 땅 위에 있을 경우
         if self.y < 130:
+            frame_game.wingimage.sound = None
             self.y = 130
             self.yspd = 0
 
@@ -489,6 +493,7 @@ class FLY:  # 플레이어 날기(점프) 동작
 
         # 땅 위에 있을 경우
         if self.y < 130:
+            frame_game.wingimage.sound = None
             self.y = 130
             self.yspd = 0
 
@@ -658,6 +663,7 @@ class DRAW:  # 플레이어 별 그리기 동작
 
         # 땅 위에 있을 경우
         if self.y < 130:
+            frame_game.wingimage.sound = None
             self.y = 130
             self.yspd = 0
 
@@ -931,11 +937,18 @@ class Quickmove:
 # 날개 오브젝트
 
 class Wingimage:
+    sound = None
 
     def __init__(self):
         self.image = load_image('wingimg.png')  # 날개 이미지
         self.frame = 0  # 애니메이션 프레임
         self.dir = 0  # 날개 이동 방향
+
+    def soundplay(self):
+        if self.sound is None:
+            self.sound = load_wav('BGM3 - Flying.wav')
+            self.sound.set_volume(32)
+            self.sound.play(1)
 
     def draw(self, x, y, drdir):
 
@@ -958,6 +971,16 @@ class Wingimage:
                                        frame_game.eunbi.y + 20, 55, 14)
 
     def update(self):
+
+        # 날기시 효과음 재생
+
+        if frame_game.eunbi.yspd > 0:
+            print('sound')
+            self.soundplay()
+        else:
+            self.sound = None
+
+        # 방향에 따라 프레임 표시
 
         if self.dir == 0:
             if self.frame < 2:

@@ -15,6 +15,8 @@ import game_world         # 게임 월드 및 스테이지 관련 변수, 함수
 import stageinfo          # 스테이지 관련 변수, 함수
 import control            # 컨트롤 관련 변수, 함수
 
+import bgmplay            # 배경음 재생 관련
+
 # ------------ 상수들 ------------
 
 WINDOWXSIZE = 1000  # 화면 x 크기
@@ -30,6 +32,18 @@ OBJSNUMMAX = 6      # 오브젝트 개수 상한
 OBJSNUMMAX2 = 4     # 오브젝트 개수 상한 2
 
 LEFTTIME = 100      # 스테이지당 제한시간 (초 단위 아님)
+
+# ------------ BGM, 효과음 ------------
+
+class BGM:
+    bgm = None
+
+    def __init__(self):
+        self.bgm = load_music('BGM1 - Starlight in My Heart.wav')
+        self.bgm.set_volume(32)
+        self.bgm.repeat_play()
+
+
 
 # ------------ 변수들 ------------
 
@@ -117,6 +131,7 @@ def stagecheck(stage):
     nowlefttime -= stageinfo.timespd[worldnow-1][placenow-1] # 시간 깎이는 속도
     if nowlefttime <= 0: # 시간이 0 이하로 떨어졌을 경우
         # 메인 메뉴로 이동
+        bgmplay.nowbgm = None
         game_framework.change_state(frame_main)
 
     # starplacesset에서 현재 스테이지 좌표가 있는 위치
@@ -180,6 +195,8 @@ def stagecheck(stage):
 
     # 체력이 0 이하이면 시작 메뉴로 이동
     if eunbi.lifenow <= 0:
+        # 메인 메뉴로 이동
+        bgmplay.nowbgm = None
         game_framework.change_state(frame_main)
 
     pass
@@ -276,6 +293,11 @@ def enter():
     nowlefttime = LEFTTIME       # 현재 남은 시간 (초 단위 아님)
     nowskillmovecooltime = 0     # 도약 대기시간
     nowskillwcooltime = 0        # 현재 반짝임 (일시 무적) 대기시간
+
+    # 배경음악
+    if bgmplay.nowbgm != bgmplay.BGMNORMAL:
+        bgmplay.nowbgm = bgmplay.BGMNORMAL
+        bgmplay.bgm = BGM()  # 배경음악 클래스 실행
 
     # 별 그린 것 초기화
     for i in range(10):

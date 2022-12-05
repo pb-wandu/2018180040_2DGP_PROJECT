@@ -11,6 +11,8 @@ import frame_info         # 정보 메뉴 전환시 호출
 
 import control            # 컨트롤 관련 변수, 함수
 
+import bgmplay            # 배경음 재생 관련
+
 # ------------ 상수들 ------------
 
 WINDOWXSIZE = 1000  # 화면 x 크기
@@ -26,18 +28,33 @@ mousepressed = 0 # 마우스 클릭한 여부
 
 PL_MAIN, PL_INFO, PL_STAGE, PL_PAUSE, PL_UPGRADE = 10, 11, 20, 21, 30
 
-nowplace = UNSET
+nowplace = UNSET # 현재 위치
+
+class BGM:
+    bgm = None
+
+    def __init__(self):
+        self.bgm = load_music('BGM1 - Starlight in My Heart.wav')
+        self.bgm.set_volume(32)
+        self.bgm.repeat_play()
 
 # ------------ 게임 프레임워크 동작들 ------------
+
+bgmplay.nowbgm = None
+
 
 # 메뉴 진입
 def enter():
     global imagebg
     global nowplace
-
     show_cursor() # 마우스 커서 보이기
 
     imagebg = load_image('mainmenuimg.png') # 시작 메뉴 이미지
+
+    # 배경음악
+    if bgmplay.nowbgm != bgmplay.BGMNORMAL:
+        bgmplay.nowbgm = bgmplay.BGMNORMAL
+        bgmplay.bgm = BGM()  # 배경음악 클래스 실행
 
     # 현위치 지정
     nowplace = PL_MAIN
@@ -53,7 +70,11 @@ def exit():
 # 화면 그리기
 def draw():
     clear_canvas()
+
     imagebg.draw(WINDOWXSIZE / 2, WINDOWYSIZE / 2)  # 시작 메뉴 이미지 그리기
+
+
+
     update_canvas()
 
 # 정보 갱신

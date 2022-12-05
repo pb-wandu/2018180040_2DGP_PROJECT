@@ -11,7 +11,10 @@
 프레젠테이션 파일에는 [ONE 모바일 POP] 폰트를 사용하였습니다.
 - 다운로드 및 라이센스 : https://www.onestorecorp.com/sv/fordev_font/
 
-프로젝트 1차 발표 : https://www.youtube.com/watch?v=FlX7Q-IZfAE
-프로젝트 2차 발표 : https://www.youtube.com/watch?v=PW6TtbHCPYk
-프로젝트 3차 발표 (내용이었던 것) : https://www.youtube.com/watch?v=BnAozagwKuc
-프로젝트 최종 발표 : [현재 영상]
+> 프로젝트 1차 발표 : https://www.youtube.com/watch?v=FlX7Q-IZfAE
+> 프로젝트 2차 발표 : https://www.youtube.com/watch?v=PW6TtbHCPYk
+> 프로젝트 3차 발표 (내용이었던 것) : https://www.youtube.com/watch?v=BnAozagwKuc
+# 전반적인 코드 점검 및 정리 : https://www.youtube.com/watch?v=Ey8SjB1ibUE
+
+
+// 프로젝트 최종 발표 : [현재 영상]
